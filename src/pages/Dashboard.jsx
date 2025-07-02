@@ -3,9 +3,9 @@ function Dashboard() {
     <div>
       <div className="grid grid-cols-3 gap-6">
         {/* Inventory Section */}
-        <div className="col-span-2 bg-white p-4 rounded-lg shadow-md">
+        <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">INVENTORY</h2>
+            <h2 className="text-xl font-bold text-[#89AE29] ">INVENTORY</h2>
             <input
               type="text"
               placeholder="Search"
@@ -36,7 +36,7 @@ function Dashboard() {
 
         {/* Statistics Section */}
         <div className="bg-white p-4 rounded-lg shadow-md flex flex-col justify-between">
-          <h2 className="text-xl font-bold mb-4">STATISTICS</h2>
+          <h2 className="text-xl text-[#89AE29] font-bold mb-4">STATISTICS</h2>
           <div className="space-y-4">
             <div className="bg-green-100 p-4 rounded shadow text-center font-semibold text-green-800">GAIN</div>
             <div className="bg-red-100 p-4 rounded shadow text-center font-semibold text-red-800">LOSS</div>

@@ -7,7 +7,7 @@ import Topbar from './components/Topbar';
 function App() {
   return (
     <Router>
-      <div className="bg-[#fef8e0] min-h-screen">
+      <div className="bg-[#E4DED0] min-h-screen">
         <Topbar />
         <main className="p-4">
           <Routes>
