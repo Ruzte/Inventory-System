@@ -12,30 +12,32 @@ function Dashboard() {
               className="border px-3 py-1 rounded-md text-sm"
             />
           </div>
-          <table className="w-full text-sm border border-gray-300">
-            <thead className="bg-[#dbe6a6] text-left">
+          <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
+            <thead className="bg-[#dbe6a6] text-center">
               <tr>
                 <th className="p-2 border">ID</th>
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Quantity</th>
+                <th className="p-2 border">Image</th>
+                <th className="p-2 border">Item Name</th>
                 <th className="p-2 border">Price</th>
-                <th className="p-2 border">Category</th>
+                <th className="p-2 border">Quantity</th>
+                <th className="p-2 border">Earnings</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td className="p-2 border">001</td>
-                <td className="p-2 border">Sample Item</td>
-                <td className="p-2 border">10</td>
-                <td className="p-2 border">$12</td>
-                <td className="p-2 border">General</td>
+                <td className="p-2 border">-</td>
+                <td className="p-2 border">-</td>
+                <td className="p-2 border">-</td>
+                <td className="p-2 border">-</td>
+                <td className="p-2 border">-</td>
+                <td className="p-2 border">-</td>
               </tr>
             </tbody>
           </table>
         </div>
 
         {/* Statistics Section */}
-        <div className="bg-white p-4 rounded-lg shadow-md flex flex-col justify-between">
+        <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between">
           <h2 className="text-xl text-[#89AE29] font-bold mb-4">STATISTICS</h2>
           <div className="space-y-4">
             <div className="bg-green-100 p-4 rounded shadow text-center font-semibold text-green-800">GAIN</div>
