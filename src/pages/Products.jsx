@@ -22,6 +22,28 @@ function Dashboard() {
 const incrementQuantity = () => setQuantity(prev => prev + 1);
 const decrementQuantity = () =>
   setQuantity(prev => (prev > 0 ? prev - 1 : 0));
+ const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
+
+  const handleCategoryChange = (e) => {
+    const value = e.target.value;
+    if (value === "add-new") {
+      setShowModal(true);
+    } else {
+      setSelectedCategory(value);
+    }
+  };
+
+  const handleAddCategory = () => {
+    if (newCategory.trim() !== "" && !categories.includes(newCategory)) {
+      setCategories([...categories, newCategory]);
+      setSelectedCategory(newCategory);
+    }
+    setNewCategory("");
+    setShowModal(false);
+  };
 
 
   return (
@@ -102,43 +124,94 @@ const decrementQuantity = () =>
 
 
   {/* Category Dropdown */}
-  <label className="text-sm text-[#2F5D55] mb-1">Category</label>
-  <select className="w-full mb-2 p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700">
-    <option value="">Select category</option>
-    <option value="electronics">Electronics</option>
-    <option value="clothing">Clothing</option>
-    <option value="supplies">Supplies</option>
-    <option value="add-new">+ Add New Category</option>
-  </select>
+<label className="text-sm text-[#2F5D55] mb-1">Category</label>
+<select
+  value={selectedCategory}
+  onChange={handleCategoryChange}
+  className="w-full mb-2 p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
+>
+  <option value="">Select category</option>
+  {categories.map((cat, index) => (
+    <option key={index} value={cat}>
+      {cat}
+    </option>
+  ))}
+  <option value="add-new">+ Add New Category</option>
+</select>
 
-  {/* Optional: Text input for new category if "+ Add New" selected */}
-  <input
-    type="text"
-    className="w-full mb-4 p-2 rounded bg-[#fff9e5] border border-dashed border-gray-400 text-gray-700"
-    placeholder="Enter new category name"
-  />
+{/* Modal */}
+{showModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 shadow-lg w-80">
+      <h3 className="text-lg font-semibold mb-4 text-[#2F5D55]">Add New Category</h3>
+      <input
+        type="text"
+        value={newCategory}
+        onChange={(e) => setNewCategory(e.target.value)}
+        placeholder="Enter category name"
+        className="w-full p-2 mb-4 rounded bg-[#f9f3d9] text-gray-700 shadow-sm"
+      />
+      <div className="flex justify-end gap-2">
+        <button
+          className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+          onClick={() => {
+            setShowModal(false);
+            setNewCategory("");
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          className="bg-[#2e5f52] text-white px-4 py-2 rounded hover:bg-green-800"
+          onClick={handleAddCategory}
+        >
+          Add
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
+
+
+  {/* Prices Row */}
+<div className="flex gap-4 mb-4">
   {/* Cost Price */}
-  <label className="text-sm text-[#2F5D55] mb-1">Cost Price</label>
-  <div className="flex items-center gap-2 mb-4">
-    <span className="text-[#2F5D55]">{getCurrencySymbol()}</span>
-    <input
-      type="number"
-      className="w-full p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
-      placeholder="0.00"
-    />
+  <div className="w-1/2">
+    <label className="text-sm text-[#2F5D55] mb-1 block">Cost Price</label>
+    <div className="flex items-center gap-2">
+      <span className="text-[#2F5D55]">{getCurrencySymbol()}</span>
+      <input
+        type="number"
+        placeholder="0.00"
+        className="w-full p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
+      />
+    </div>
   </div>
 
   {/* Selling Price */}
-  <label className="text-sm text-[#2F5D55] mb-1">Selling Price</label>
-  <div className="flex items-center gap-2">
-    <span className="text-[#2F5D55]">{getCurrencySymbol()}</span>
-    <input
-      type="number"
-      className="w-full p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
-      placeholder="0.00"
-    />
+  <div className="w-1/2">
+    <label className="text-sm text-[#2F5D55] mb-1 block">Selling Price</label>
+    <div className="flex items-center gap-2">
+      <span className="text-[#2F5D55]">{getCurrencySymbol()}</span>
+      <input
+        type="number"
+        placeholder="0.00"
+        className="w-full p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
+      />
+    </div>
   </div>
+</div>
+
+  {/* Buttons */}
+          <div className="flex gap-4 mt-4">
+            <button className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition">
+              Cancel
+            </button>
+            <button className="bg-[#2e5f52] text-white px-4 py-2 rounded shadow hover:bg-green-800 transition">
+              Confirm
+            </button>
+          </div>
 </div>
 
       </div>

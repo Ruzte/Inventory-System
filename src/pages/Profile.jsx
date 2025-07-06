@@ -54,6 +54,8 @@ const Profile = () => {
       value={currency}
       onChange={(e) => setCurrency(e.target.value)}
       className="w-full p-2 rounded-md bg-[#f9f3d9] shadow-sm text-gray-700"
+      
+    
     >
       <option value="USD">USD</option>
       <option value="PHP">PHP</option>
@@ -62,7 +64,7 @@ const Profile = () => {
 
           {/* Currency Dropdown */}
           <label className="text-sm font-semibold text-gray-700">Currency Preference</label>
-
+      
           {/* Buttons */}
           <div className="flex gap-4 mt-4">
             <button className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition">
