@@ -82,14 +82,9 @@ function Dashboard() {
 
         {/* Add Item */}
         <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between">
-          <h2 className="text-xl text-[#89AE29] font-bold mb-4 text-center">ADD ITEM</h2>
+          <h2 className="text-xl text-[#89AE29] font-bold mb-4 ">ADD ITEM</h2>
 
-          {/* Add Photo */}
-            <div className="flex justify-center mb-4">
-              <div className="bg-[#E4DED0] p-4 rounded shadow text-center text-sm text-[#2F5D55] w-32 h-32 flex items-center justify-center">
-                Add Photo
-              </div>
-            </div>
+          
 
           {/* Item Name */}
           <label className="text-sm text-[#2F5D55] mb-1">Item Name</label>
@@ -121,7 +116,6 @@ function Dashboard() {
             +
             </button>
           </div>
-
 
           {/* Category Dropdown */}
           <label className="text-sm text-[#2F5D55] mb-1">Category</label>
@@ -171,8 +165,7 @@ function Dashboard() {
             </div>
           </div>
         )}
-        {/* Prices Row */}
-      <div className="flex gap-4 mb-4">
+       
         {/* Cost Price */}
         <div className="w-1/2">
           <label className="text-sm text-[#2F5D55] mb-1 block">Cost Price</label>
@@ -198,7 +191,7 @@ function Dashboard() {
             />
           </div>
         </div>
-      </div>
+      
 
       {/* Buttons */}
           <div className="flex gap-4 mt-4">
