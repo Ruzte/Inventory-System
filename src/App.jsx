@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import Products from './pages/Products';
+import Inventory from './pages/Inventory';
+import History from './pages/History';
 import Profile from './pages/Profile';
 import Topbar from './components/Topbar';
 
@@ -48,10 +49,18 @@ function App() {
             }
           />
           <Route
-            path="/products"
+            path="/inventory"
             element={
               <ProtectedRoute>
-                <Products />
+                <Inventory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <ProtectedRoute>
+                <History />
               </ProtectedRoute>
             }
           />

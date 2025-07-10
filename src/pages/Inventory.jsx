@@ -11,6 +11,8 @@ function Dashboard() {
         return "₱";
       case "EUR":
         return "€";
+      case "AED":
+        return "د.إ";
       default:
         return "$";
     }
@@ -57,19 +59,15 @@ function Dashboard() {
           <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
             <thead className="bg-[#dbe6a6] text-center">
               <tr>
-                <th className="p-2 border">ID</th>
-                <th className="p-2 border">Category</th>
-                <th className="p-2 border">Item Name</th>
-                <th className="p-2 border">Cost Price</th>
-                <th className="p-2 border">Selling Price</th>
-                <th className="p-2 border">Quantity</th>
+                <th className="p-2 border">Date Added</th>
+                <th className="p-2 border">Product</th>
+                <th className="p-2 border">Points</th>
+                <th className="p-2 border">Price</th>
                 <th className="p-2 border"></th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td className="p-2 border">-</td>
-                <td className="p-2 border">-</td>
                 <td className="p-2 border">-</td>
                 <td className="p-2 border">-</td>
                 <td className="p-2 border">-</td>
@@ -82,20 +80,20 @@ function Dashboard() {
 
         {/* Add Item */}
         <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between">
-          <h2 className="text-xl text-[#89AE29] font-bold mb-4 ">ADD ITEM</h2>
+          <h2 className="text-xl text-[#89AE29] font-bold mb-4 ">ADD PRODUCT</h2>
 
           
 
           {/* Item Name */}
-          <label className="text-sm text-[#2F5D55] mb-1">Item Name</label>
+          <label className="text-sm text-[#2F5D55] mb-1">Product Name</label>
           <input
             type="text"
             className="w-full mb-4 p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
-            placeholder="Enter item name"
+            placeholder="Enter product name"
           />
 
           {/* Quantity Field */}
-          <label className="text-sm text-[#2F5D55] mb-1">Quantity</label>
+          <label className="text-sm text-[#2F5D55] mb-1">Unit(s)</label>
           <div className="flex items-center gap-2 mb-4">
             <button
               onClick={decrementQuantity}
@@ -166,9 +164,9 @@ function Dashboard() {
           </div>
         )}
        
-        {/* Cost Price */}
+        {/* Price */}
         <div className="w-1/2">
-          <label className="text-sm text-[#2F5D55] mb-1 block">Cost Price</label>
+          <label className="text-sm text-[#2F5D55] mb-1 block">Price</label>
           <div className="flex items-center gap-2">
             <span className="text-[#2F5D55]">{getCurrencySymbol()}</span>
             <input
@@ -178,20 +176,6 @@ function Dashboard() {
             />
           </div>
         </div>
-
-        {/* Selling Price */}
-        <div className="w-1/2">
-          <label className="text-sm text-[#2F5D55] mb-1 block">Selling Price</label>
-          <div className="flex items-center gap-2">
-            <span className="text-[#2F5D55]">{getCurrencySymbol()}</span>
-            <input
-              type="number"
-              placeholder="0.00"
-              className="w-full p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
-            />
-          </div>
-        </div>
-      
 
       {/* Buttons */}
           <div className="flex gap-4 mt-4">

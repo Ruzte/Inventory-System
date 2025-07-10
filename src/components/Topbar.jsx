@@ -33,10 +33,16 @@ function Topbar() {
          Dashboard
         </Link>
         <Link
-            to="/products"
+            to="/inventory"
             className="inline-block text-white hover:scale-105 transition-transform duration-200"
         >
-        Products
+        Inventory
+        </Link>
+        <Link
+            to="/history"
+            className="inline-block text-white hover:scale-105 transition-transform duration-200"
+        >
+        History
         </Link>
         <Link
             to="/profile"
@@ -44,6 +50,7 @@ function Topbar() {
         >
         Profile
         </Link>
+        
       </div>
     </div>
   );
