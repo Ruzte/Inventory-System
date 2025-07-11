@@ -19,10 +19,13 @@ function Dashboard() {
   };
 
   const [quantity, setQuantity] = useState(0);
+  const [points, setPoints] = useState(1);
 
   const incrementQuantity = () => setQuantity(prev => prev + 1);
-  const decrementQuantity = () =>
-  setQuantity(prev => (prev > 0 ? prev - 1 : 0));
+  const decrementQuantity = () =>setQuantity(prev => (prev > 0 ? prev - 1 : 0));
+
+  const incrementPoints = () => setPoints(prev => prev + 1);
+  const decrementPoints = () => setPoints(prev => (prev > 0 ? prev - 1 : 0));
 
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -63,7 +66,7 @@ function Dashboard() {
                 <th className="p-2 border">Product</th>
                 <th className="p-2 border">Points</th>
                 <th className="p-2 border">Price</th>
-                <th className="p-2 border"></th>
+                <th className="p-2 border">Unit</th>
               </tr>
             </thead>
             <tbody>
@@ -109,6 +112,29 @@ function Dashboard() {
             />
             <button
               onClick={incrementQuantity}
+              className="px-3 py-1 bg-[#dbe6a6] rounded text-[#2F5D55] hover:bg-[#c3d98a]"
+            >
+            +
+            </button>
+          </div>
+
+           {/* Points Field */}
+          <label className="text-sm text-[#2F5D55] mb-1">Points</label>
+          <div className="flex items-center gap-2 mb-4">
+            <button
+              onClick={decrementPoints}
+              className="px-3 py-1 bg-[#dbe6a6] rounded text-[#2F5D55] hover:bg-[#c3d98a]"
+            >
+            -
+            </button>
+              <input
+              type="number"
+              readOnly
+              value={points}
+              className="w-full p-2 text-center rounded bg-[#f9f3d9] shadow-sm text-gray-700"
+            />
+            <button
+              onClick={incrementPoints}
               className="px-3 py-1 bg-[#dbe6a6] rounded text-[#2F5D55] hover:bg-[#c3d98a]"
             >
             +
@@ -166,7 +192,7 @@ function Dashboard() {
        
         {/* Price */}
         <div className="w-1/2">
-          <label className="text-sm text-[#2F5D55] mb-1 block">Price</label>
+          <label className="text-sm text-[#2F5D55] mb-1 block">Unit Price</label>
           <div className="flex items-center gap-2">
             <span className="text-[#2F5D55]">{getCurrencySymbol()}</span>
             <input

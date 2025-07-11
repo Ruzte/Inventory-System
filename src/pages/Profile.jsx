@@ -46,7 +46,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="bg-[#FEF5E3] rounded-xl shadow-lg w-full max-w-6xl p-8 flex gap-8">
+    <div className="bg-[#FEF5E3] rounded-xl shadow-lg w-full h-full p-8 flex gap-8">
       {/* LEFT: Profile Picture */}
       <div className="flex flex-col items-center w-1/3">
         <label htmlFor="photo-upload" className="cursor-pointer">
