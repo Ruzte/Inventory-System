@@ -34,6 +34,30 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.put('/update', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const updatedUser = await User.findOneAndUpdate(
+      {},
+      { username, password: hashedPassword },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    res.status(200).json({ message: 'User updated successfully.' });
+
+  } catch (err) {
+    console.error("❌ Update failed", err);
+    res.status(500).json({ error: 'Update failed.' });
+  }
+});
+
 
 
 export default router;

@@ -1,9 +1,19 @@
 import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { FaUser } from 'react-icons/fa';
+import { useEffect, useState } from 'react';
 
 function Topbar() {
   const { photo } = useUser(); // get photo from context
+  const [username, setUsername] = useState("");
+
+  // Fetch username from localStorage on mount
+  useEffect(() => {
+    const storedUsername = localStorage.getItem("username");
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
+  }, []);
 
   return (
     <div className="bg-[#89AE29] text-white px-6 py-3 mx-4 mt-4 rounded-full shadow-lg flex justify-between items-center">
@@ -21,36 +31,35 @@ function Topbar() {
             <FaUser className="text-white text-sm" />
           </div>
         )}
-        <span className="text-sm font-semibold">USERNAME</span>
+        <span className="text-xl font-bold">{username || "USERNAME"}</span>
       </div>
 
       {/* Navigation */}
       <div className="space-x-6 text-sm">
         <Link
-            to="/dashboard"
-            className="inline-block text-white hover:scale-105 transition-transform duration-200"
+          to="/dashboard"
+          className="inline-block text-white hover:scale-105 transition-transform duration-200"
         >
-         Dashboard
+          Dashboard
         </Link>
         <Link
-            to="/inventory"
-            className="inline-block text-white hover:scale-105 transition-transform duration-200"
+          to="/inventory"
+          className="inline-block text-white hover:scale-105 transition-transform duration-200"
         >
-        Inventory
+          Inventory
         </Link>
         <Link
-            to="/history"
-            className="inline-block text-white hover:scale-105 transition-transform duration-200"
+          to="/history"
+          className="inline-block text-white hover:scale-105 transition-transform duration-200"
         >
-        History
+          History
         </Link>
         <Link
-            to="/profile"
-            className="inline-block text-white hover:scale-105 transition-transform duration-200"
+          to="/profile"
+          className="inline-block text-white hover:scale-105 transition-transform duration-200"
         >
-        Profile
+          Profile
         </Link>
-        
       </div>
     </div>
   );

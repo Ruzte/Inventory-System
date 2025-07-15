@@ -1,5 +1,5 @@
 import { useCurrency } from "../context/Currency";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function Dashboard() {
   const { currency } = useCurrency();
@@ -9,8 +9,6 @@ function Dashboard() {
         return "$";
       case "PHP":
         return "₱";
-      case "EUR":
-        return "€";
       case "AED":
         return "د.إ";
       default:
@@ -20,36 +18,59 @@ function Dashboard() {
 
   const [quantity, setQuantity] = useState(0);
   const [points, setPoints] = useState(1);
+  const [productName, setProductName] = useState("");
+  const [unitPrice, setUnitPrice] = useState("");
+  const [items, setItems] = useState([]);
 
+  useEffect(() => {
+  const fetchItems = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/items");
+      const data = await res.json();
+      setItems(data);
+    } catch (err) {
+      console.error("Failed to fetch items:", err);
+    }
+  };
+
+  fetchItems();
+}, []);
   const incrementQuantity = () => setQuantity(prev => prev + 1);
   const decrementQuantity = () =>setQuantity(prev => (prev > 0 ? prev - 1 : 0));
 
   const incrementPoints = () => setPoints(prev => prev + 1);
   const decrementPoints = () => setPoints(prev => (prev > 0 ? prev - 1 : 0));
 
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [newCategory, setNewCategory] = useState("");
+  const handleConfirm = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/items/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: productName,
+        unitAmount: quantity,
+        points,
+        unitPrice,
+        status: "Available"
+      }),
+    });
 
-  const handleCategoryChange = (e) => {
-    const value = e.target.value;
-    if (value === "add-new") {
-      setShowModal(true);
+    const data = await res.json();
+    if (res.ok) {
+      alert("Item added successfully!");
+      // Optional: reset form fields
+      setProductName("");
+      setQuantity(0);
+      setPoints(1);
+      setUnitPrice("");
     } else {
-      setSelectedCategory(value);
+      alert(data.message || "Failed to add item.");
     }
-  };
-
-  const handleAddCategory = () => {
-    if (newCategory.trim() !== "" && !categories.includes(newCategory)) {
-      setCategories([...categories, newCategory]);
-      setSelectedCategory(newCategory);
-    }
-    setNewCategory("");
-    setShowModal(false);
-  };
-
+  } catch (err) {
+    console.error(err);
+    alert("Error submitting item.");
+  }
+};
 
   return (
     <div>
@@ -62,21 +83,24 @@ function Dashboard() {
           <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
             <thead className="bg-[#dbe6a6] text-center">
               <tr>
-                <th className="p-2 border">Date Added</th>
+                <th className="p-2 border ">Date Added</th>
                 <th className="p-2 border">Product</th>
-                <th className="p-2 border">Points</th>
-                <th className="p-2 border">Price</th>
-                <th className="p-2 border">Unit</th>
+                <th className="p-2 border ">Unit Amount</th>
+                <th className="p-2 border ">Points</th>
+                <th className="p-2 border ">Unit Price</th>
+                <th className="p-2 border ">Status</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td className="p-2 border">-</td>
-                <td className="p-2 border">-</td>
-                <td className="p-2 border">-</td>
-                <td className="p-2 border">-</td>
-                <td className="p-2 border">-</td>
-              </tr>
+              {items.map((item, index) => (
+                <tr key={index}>
+                  <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
+                  <td className="p-2 border">{item.name}</td>
+                  <td className="p-2 border">{item.points}</td>
+                  <td className="p-2 border">{item.unitPrice}</td>
+                  <td className="p-2 border">{item.unitAmount}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -84,17 +108,15 @@ function Dashboard() {
         {/* Add Item */}
         <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between">
           <h2 className="text-xl text-[#89AE29] font-bold mb-4 ">ADD PRODUCT</h2>
-
-          
-
           {/* Item Name */}
           <label className="text-sm text-[#2F5D55] mb-1">Product Name</label>
           <input
             type="text"
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
             className="w-full mb-4 p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
             placeholder="Enter product name"
           />
-
           {/* Quantity Field */}
           <label className="text-sm text-[#2F5D55] mb-1">Unit(s)</label>
           <div className="flex items-center gap-2 mb-4">
@@ -117,7 +139,6 @@ function Dashboard() {
             +
             </button>
           </div>
-
            {/* Points Field */}
           <label className="text-sm text-[#2F5D55] mb-1">Points</label>
           <div className="flex items-center gap-2 mb-4">
@@ -139,82 +160,37 @@ function Dashboard() {
             >
             +
             </button>
+          </div>  
+          {/* Price */}
+          <div className="w-1/2">
+            <label className="text-sm text-[#2F5D55] mb-1 block">Unit Price</label>
+            <div className="flex items-center gap-2">
+              <span className="text-[#2F5D55]">{getCurrencySymbol()}</span>
+              <input
+                type="number"
+                value={unitPrice}
+                onChange={(e) => setUnitPrice(e.target.value)}
+                placeholder="0.00"
+                className="w-full p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
+              />
+            </div>
           </div>
 
-          {/* Category Dropdown */}
-          <label className="text-sm text-[#2F5D55] mb-1">Category</label>
-          <select
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-              className="w-full mb-2 p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
-            >
-            <option value="">Select category</option>
-              {categories.map((cat, index) => (
-              <option key={index} value={cat}>
-                {cat}
-            </option>
-            ))}
-          <option value="add-new">+ Add New Category</option>
-          </select>
-
-        {/* Modal */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 shadow-lg w-80">
-              <h3 className="text-lg font-semibold mb-4 text-[#2F5D55]">Add New Category</h3>
-              <input
-                type="text"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                placeholder="Enter category name"
-                className="w-full p-2 mb-4 rounded bg-[#f9f3d9] text-gray-700 shadow-sm"
-              />
-              <div className="flex justify-end gap-2">
-                <button
-                  className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-                  onClick={() => {
-                    setShowModal(false);
-                    setNewCategory("");
-                  }}
-                >
+        {/* Buttons */}
+            <div className="flex gap-4 mt-4">
+                <button className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition">
                   Cancel
                 </button>
                 <button
-                  className="bg-[#2e5f52] text-white px-4 py-2 rounded hover:bg-green-800"
-                  onClick={handleAddCategory}
+                  onClick={handleConfirm}
+                  className="bg-[#2e5f52] text-white px-4 py-2 rounded shadow hover:bg-green-800 transition"
                 >
-                  Add
+                  Confirm
                 </button>
               </div>
             </div>
           </div>
-        )}
-       
-        {/* Price */}
-        <div className="w-1/2">
-          <label className="text-sm text-[#2F5D55] mb-1 block">Unit Price</label>
-          <div className="flex items-center gap-2">
-            <span className="text-[#2F5D55]">{getCurrencySymbol()}</span>
-            <input
-              type="number"
-              placeholder="0.00"
-              className="w-full p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
-            />
-          </div>
         </div>
-
-      {/* Buttons */}
-          <div className="flex gap-4 mt-4">
-              <button className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition">
-                Cancel
-              </button>
-              <button className="bg-[#2e5f52] text-white px-4 py-2 rounded shadow hover:bg-green-800 transition">
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
   );
 }
 

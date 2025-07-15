@@ -21,6 +21,7 @@ function Login() {
 
       if (res.ok) {
         localStorage.setItem("loggedIn", "true");
+        localStorage.setItem("username", username);
         navigate("/dashboard");
       } else {
         setError(data.message || "Login failed.");

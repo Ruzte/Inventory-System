@@ -1,7 +1,23 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
 
 function Dashboard() {
   const navigate = useNavigate();
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/items");
+        const data = await res.json();
+        setItems(data);
+      } catch (err) {
+        console.error("Failed to fetch items:", err);
+      }
+    };
+
+    fetchItems();
+  }, []);
 
   const handleActionChange = (action) => {
   switch(action) {
@@ -50,26 +66,33 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td className="p-2 border">-</td>
-                <td className="p-2 border">-</td>
-                <td className="p-2 border">-</td>
-                <td className="p-2 border">-</td>
-                <td className="p-2 border">-</td>
-                <td className="p-2 border">-</td>
-                <td className="p-2 border">-</td>
-                <td className="p-2 border">
-                  <select 
-                    className="min-w-8 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#89AE29]"
-                    onChange={(e) => handleActionChange(e.target.value)}
-                  >
-                    <option value="">Select Action</option>
-                    <option value="edit">Edit</option>
-                    <option value="delete">Delete</option>
-                    <option value="view">View Details</option>
-                  </select>
-                </td>
-              </tr>
+              {items.map((item) => {
+                const totalPoints = item.unitAmount * item.points;
+                const totalPrice = item.unitAmount * item.unitPrice;
+
+                return (
+                  <tr key={item._id}>
+                    <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
+                    <td className="p-2 border">{item.name}</td>
+                    <td className="p-2 border">{item.points}</td>
+                    <td className="p-2 border">{item.unitPrice}</td>
+                    <td className="p-2 border">{item.unitAmount}</td>
+                    <td className="p-2 border">{totalPoints}</td>
+                    <td className="p-2 border">{totalPrice}</td>
+                    <td className="p-2 border">
+                      <select 
+                        className="min-w-8 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#89AE29]"
+                        onChange={(e) => handleActionChange(e.target.value)}
+                      >
+                        <option value="">Select Action</option>
+                        <option value="edit">Edit</option>
+                        <option value="delete">Delete</option>
+                        <option value="view">View Details</option>
+                      </select>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FiEdit3 } from "react-icons/fi";
 import { HiOutlineEye } from "react-icons/hi";
 import { useCurrency } from "../context/Currency";
@@ -7,27 +7,13 @@ import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
   const { currency, setCurrency } = useCurrency();
   const { photo, setPhoto } = useUser();
   const navigate = useNavigate();
-
-  // Load credentials on mount
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) {
-      setUsername(storedUser.username || "");
-      setPassword(storedUser.password || "");
-    }
-  }, []);
-
-  // Save to localStorage
-  const handleSave = () => {
-    localStorage.setItem("user", JSON.stringify({ username, password }));
-    alert("User info saved!");
-  };
+  const [message, setMessage] = useState("");
 
   const handleLogout = () => {
     localStorage.removeItem("loggedIn");
@@ -45,8 +31,35 @@ const Profile = () => {
     }
   };
 
+  const handleUpdate = async () => {
+    setMessage("");
+
+    try {
+      const res = await fetch("http://localhost:5000/api/users/update", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setMessage("✅ User updated successfully.");
+        localStorage.setItem("username", username); 
+        setEditing(false);
+      } else {
+        setMessage("❌ " + (data.error || "Update failed."));
+      }
+    } catch (err) {
+      console.error("❌ Update failed", err);
+      setMessage("❌ Something went wrong.");
+    }
+  };
+
   return (
-    <div className="bg-[#FEF5E3] rounded-xl shadow-lg w-full h-full p-8 flex gap-8">
+    <div className="bg-[#FEF5E3] rounded-xl shadow-lg w-full max-w-6xl p-8 flex gap-8">
       {/* LEFT: Profile Picture */}
       <div className="flex flex-col items-center w-1/3">
         <label htmlFor="photo-upload" className="cursor-pointer">
@@ -78,11 +91,15 @@ const Profile = () => {
         <div className="flex items-center gap-2">
           <input
             type="text"
+            className="w-full p-2 pl-3 rounded-md bg-[#E4DED0] text-gray-700 shadow-sm"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="w-full p-2 pl-3 rounded-md bg-[#E4DED0] text-gray-700 shadow-sm"
+            disabled={!editing}
           />
-          <FiEdit3 className="text-[#7a9c32] cursor-pointer" />
+          <FiEdit3
+            className="text-[#7a9c32] cursor-pointer"
+            onClick={() => setEditing(true)}
+          />
         </div>
 
         {/* Password */}
@@ -91,16 +108,20 @@ const Profile = () => {
           <div className="relative w-full">
             <input
               type={showPassword ? "text" : "password"}
+              className="w-full p-2 pl-3 pr-10 rounded-md bg-[#E4DED0] text-gray-700 shadow-sm"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 pl-3 pr-10 rounded-md bg-[#E4DED0] text-gray-700 shadow-sm"
+              disabled={!editing}
             />
             <HiOutlineEye
               className="absolute right-3 top-2.5 text-[#7a9c32] cursor-pointer"
               onClick={() => setShowPassword(!showPassword)}
             />
           </div>
-          <FiEdit3 className="text-[#7a9c32] cursor-pointer" />
+          <FiEdit3
+            className="text-[#7a9c32] cursor-pointer"
+            onClick={() => setEditing(true)}
+          />
         </div>
 
         {/* Currency Preference */}
@@ -110,34 +131,35 @@ const Profile = () => {
           onChange={(e) => setCurrency(e.target.value)}
           className="w-full p-2 rounded-md bg-[#f9f3d9] shadow-sm text-gray-700"
         >
+          <option value="AED">AED</option>
           <option value="USD">USD</option>
           <option value="PHP">PHP</option>
-          <option value="EUR">EUR</option>
-          <option value="AED">AED</option>
         </select>
 
+        {/* Status Message */}
+        {message && (
+          <p className={`text-sm ${message.startsWith("✅") ? "text-green-600" : "text-red-600"}`}>
+            {message}
+          </p>
+        )}
+
         {/* Buttons */}
-        <div className="flex gap-4 mt-4">
-          <button
-            className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition"
-            onClick={() => {
-              // Reset fields from localStorage
-              const storedUser = JSON.parse(localStorage.getItem("user"));
-              if (storedUser) {
-                setUsername(storedUser.username || "");
-                setPassword(storedUser.password || "");
-              }
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="bg-[#2e5f52] text-white px-4 py-2 rounded shadow hover:bg-green-800 transition"
-          >
-            Confirm
-          </button>
-        </div>
+        {editing && (
+          <div className="flex gap-4 mt-4">
+            <button
+              className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition"
+              onClick={() => setEditing(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="bg-[#2e5f52] text-white px-4 py-2 rounded shadow hover:bg-green-800 transition"
+              onClick={handleUpdate}
+            >
+              Confirm
+            </button>
+          </div>
+        )}
       </div>
 
       {/* RIGHT: Log Out */}
