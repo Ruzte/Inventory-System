@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 function Dashboard() {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
+  const [showSaleModal, setShowSaleModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [saleUnits, setSaleUnits] = useState(1);
+  const [dropdownKey, setDropdownKey] = useState(0); // to reset select box
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -19,24 +24,86 @@ function Dashboard() {
     fetchItems();
   }, []);
 
-  const handleActionChange = (action) => {
-  switch(action) {
-    case 'edit':
-      // Handle edit action
-      console.log('Edit selected');
-      break;
-    case 'delete':
-      // Handle delete action
-      console.log('Delete selected');
-      break;
-    case 'view':
-      // Handle view action
-      console.log('View selected');
-      break;
-    default:
-      break;
+  const handleActionChange = (action, item) => {
+    switch (action) {
+      case 'sale':
+        setSelectedItem(item);
+        setSaleUnits(1);
+        setShowSaleModal(true);
+        break;
+      case 'add':
+        console.log('Add Item selected');
+        break;
+      case 'delete':
+        setSelectedItem(item);
+        setShowDeleteModal(true);
+        break;
+      default:
+        break;
     }
   };
+
+  const handleSaleConfirm = async () => {
+    if (!selectedItem || saleUnits <= 0 || saleUnits > selectedItem.unitAmount) {
+      alert("Invalid sale amount.");
+      return;
+    }
+
+    const updatedItem = {
+      ...selectedItem,
+      unitAmount: selectedItem.unitAmount - saleUnits
+    };
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/items/${selectedItem._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedItem),
+      });
+
+      if (res.ok) {
+        setItems(prev => prev.map(i => i._id === selectedItem._id ? updatedItem : i));
+        setShowSaleModal(false);
+        setSelectedItem(null);
+        setSaleUnits(1);
+        setDropdownKey(prev => prev + 1); // reset dropdowns
+      } else {
+        alert("Failed to update item.");
+      }
+    } catch (err) {
+      console.error("Sale update failed:", err);
+      alert("Error processing sale.");
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedItem) return;
+
+    const updatedItem = {
+      ...selectedItem,
+      status: "Deleted"
+    };
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/items/${selectedItem._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedItem),
+      });
+
+      if (res.ok) {
+        setItems(prev => prev.map(i => i._id === selectedItem._id ? updatedItem : i));
+        setShowDeleteModal(false);
+        setSelectedItem(null);
+      } else {
+        alert("Failed to delete item.");
+      }
+    } catch (err) {
+      console.error("Delete update failed:", err);
+      alert("Error processing delete.");
+    }
+  };
+
   return (
     <div>
       <div className="grid grid-cols-3 gap-6">
@@ -69,7 +136,6 @@ function Dashboard() {
               {items.map((item) => {
                 const totalPoints = item.unitAmount * item.points;
                 const totalPrice = item.unitAmount * item.unitPrice;
-
                 return (
                   <tr key={item._id}>
                     <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
@@ -80,14 +146,15 @@ function Dashboard() {
                     <td className="p-2 border">{totalPoints}</td>
                     <td className="p-2 border">{totalPrice}</td>
                     <td className="p-2 border">
-                      <select 
+                      <select
+                        key={dropdownKey}
                         className="min-w-8 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#89AE29]"
-                        onChange={(e) => handleActionChange(e.target.value)}
+                        onChange={(e) => handleActionChange(e.target.value, item)}
                       >
                         <option value="">Select Action</option>
-                        <option value="edit">Edit</option>
+                        <option value="sale">Sale</option>
+                        <option value="add">Add Unit</option>
                         <option value="delete">Delete</option>
-                        <option value="view">View Details</option>
                       </select>
                     </td>
                   </tr>
@@ -97,10 +164,88 @@ function Dashboard() {
           </table>
         </div>
 
+        {/* Sale Modal */}
+        {showSaleModal && selectedItem && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+              <h3 className="text-lg font-bold text-[#2F5D55] mb-4">Sell Units for {selectedItem.name}</h3>
+
+              <label className="text-sm text-[#2F5D55] mb-2 block">Units to Sell:</label>
+              <div className="flex items-center gap-2 mb-4">
+                <button
+                  className="px-3 py-1 bg-[#dbe6a6] rounded text-[#2F5D55] hover:bg-[#c3d98a]"
+                  onClick={() => setSaleUnits(prev => Math.max(1, prev - 1))}
+                >
+                  –
+                </button>
+                <input
+                  type="number"
+                  min={1}
+                  max={selectedItem.unitAmount}
+                  value={saleUnits}
+                  readOnly
+                  className="w-full text-center p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
+                />
+                <button
+                  className="px-3 py-1 bg-[#dbe6a6] rounded text-[#2F5D55] hover:bg-[#c3d98a]"
+                  onClick={() => setSaleUnits(prev => Math.min(selectedItem.unitAmount, prev + 1))}
+                >
+                  +
+                </button>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                  onClick={() => {
+                    setShowSaleModal(false);
+                    setSelectedItem(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-[#2e5f52] text-white px-4 py-2 rounded hover:bg-green-800"
+                  onClick={handleSaleConfirm}
+                >
+                  Confirm Sale
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Modal */}
+        {showDeleteModal && selectedItem && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+              <h3 className="text-lg font-bold text-[#2F5D55] mb-4">
+                Delete {selectedItem.name}?
+              </h3>
+              <p className="text-sm text-gray-700 mb-4">
+                Are you sure you want to delete this item? This will mark the item as deleted but keep it in records.
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                  onClick={() => setShowDeleteModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                  onClick={handleDeleteConfirm}
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Statistics Section */}
         <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between ">
           <h2 className="text-xl text-[#89AE29] font-bold mb-4">STATISTICS</h2>
-          
           <div className="space-y-4">
             <div className="bg-green-100 p-4 rounded shadow text-center font-semibold text-green-800">GAIN</div>
             <div className="bg-red-100 p-4 rounded shadow text-center font-semibold text-red-800">LOSS</div>

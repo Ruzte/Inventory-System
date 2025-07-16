@@ -34,4 +34,14 @@ router.get("/", async (req, res) => {
   }
 });
 
+// PUT /api/items/:id - Update item
+router.put("/:id", async (req, res) => {
+  try {
+    const updatedItem = await Item.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(updatedItem);
+  } catch (err) {
+    console.error("Update item error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 export default router;
