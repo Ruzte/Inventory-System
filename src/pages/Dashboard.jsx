@@ -7,39 +7,48 @@ function Dashboard() {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [saleUnits, setSaleUnits] = useState(1);
-  const [dropdownKey, setDropdownKey] = useState(0); // to reset select box
+  const [dropdownKey, setDropdownKey] = useState(0); 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addQuantity, setAddQuantity] = useState(1);
+
+  // ⬇️ Make fetchItems accessible globally
+  const fetchItems = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/items");
+      const data = await res.json();
+      setItems(data);
+    } catch (err) {
+      console.error("Failed to fetch items:", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/items");
-        const data = await res.json();
-        setItems(data);
-      } catch (err) {
-        console.error("Failed to fetch items:", err);
-      }
-    };
-
     fetchItems();
   }, []);
 
-  const handleActionChange = (action, item) => {
+  const handleActionChange = (action, item, e) => {
+    setSelectedItem(item);
+
     switch (action) {
       case 'sale':
-        setSelectedItem(item);
         setSaleUnits(1);
         setShowSaleModal(true);
         break;
       case 'add':
-        console.log('Add Item selected');
+        setAddQuantity(1);
+        setShowAddModal(true);
         break;
       case 'delete':
-        setSelectedItem(item);
         setShowDeleteModal(true);
         break;
       default:
         break;
+    }
+
+    // Reset dropdown to "Select Action"
+    if (e?.target) {
+      e.target.selectedIndex = 0;
     }
   };
 
@@ -76,6 +85,31 @@ function Dashboard() {
     }
   };
 
+  const handleAddUnitsConfirm = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/items/${selectedItem._id}/add-units`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ addQuantity }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("Units added successfully!");
+        fetchItems(); // ⬅️ now accessible here
+      } else {
+        alert(data.message || "Failed to add units.");
+      }
+    } catch (err) {
+      console.error("Add units error:", err);
+      alert("Error adding units.");
+    }
+
+    setShowAddModal(false);
+    setAddQuantity(1);
+  };
+
   const handleDeleteConfirm = async () => {
     if (!selectedItem) return;
 
@@ -92,7 +126,7 @@ function Dashboard() {
       });
 
       if (res.ok) {
-        setItems(prev => prev.map(i => i._id === selectedItem._id ? updatedItem : i));
+        fetchItems(); // ⬅️ refresh items after soft delete
         setShowDeleteModal(false);
         setSelectedItem(null);
       } else {
@@ -133,7 +167,9 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => {
+              {items
+              .filter((item) => item.status !== "Deleted") // ⬅️ Soft delete filter
+              .map((item) => {
                 const totalPoints = item.unitAmount * item.points;
                 const totalPrice = item.unitAmount * item.unitPrice;
                 return (
@@ -146,10 +182,11 @@ function Dashboard() {
                     <td className="p-2 border">{totalPoints}</td>
                     <td className="p-2 border">{totalPrice}</td>
                     <td className="p-2 border">
-                      <select
+                      <select 
                         key={dropdownKey}
                         className="min-w-8 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#89AE29]"
-                        onChange={(e) => handleActionChange(e.target.value, item)}
+                        onChange={(e) => handleActionChange(e.target.value, item, e)}
+                        defaultValue=""
                       >
                         <option value="">Select Action</option>
                         <option value="sale">Sale</option>
@@ -209,6 +246,55 @@ function Dashboard() {
                   onClick={handleSaleConfirm}
                 >
                   Confirm Sale
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Item Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white p-6 rounded shadow-md w-80">
+              <h2 className="text-lg font-semibold mb-4">Add Units to {selectedItem?.name}</h2>
+
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  className="px-3 py-1 bg-gray-200 rounded"
+                  onClick={() => setAddQuantity((prev) => Math.max(1, prev - 1))}
+                >
+                  -
+                </button>
+                <span className="text-lg font-bold">{addQuantity}</span>
+                <button
+                  className="px-3 py-1 bg-gray-200 rounded"
+                  onClick={() => setAddQuantity((prev) => prev + 1)}
+                >
+                  +
+                </button>
+              </div>
+
+              <div className="text-sm text-gray-600 mb-4">
+                Total Points: {selectedItem?.points * addQuantity}
+                <br />
+                Total Price: ₱{selectedItem?.unitPrice * addQuantity}
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <button
+                  className="px-4 py-1 bg-gray-300 rounded"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setAddQuantity(1);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-1 bg-[#89AE29] text-white rounded"
+                  onClick={handleAddUnitsConfirm}
+                >
+                  Confirm
                 </button>
               </div>
             </div>

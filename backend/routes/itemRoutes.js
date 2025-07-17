@@ -13,6 +13,7 @@ router.post("/", async (req, res) => {
       unitAmount,
       points,
       unitPrice,
+      status: "Available",
     });
 
     await newItem.save();
@@ -44,4 +45,23 @@ router.put("/:id", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+router.patch("/:id/add-units", async (req, res) => {
+  const { id } = req.params;
+  const { addQuantity } = req.body;
+
+  try {
+    const item = await Item.findById(id);
+    if (!item) return res.status(404).json({ message: "Item not found" });
+
+    item.unitAmount += parseInt(addQuantity);
+    await item.save();
+
+    res.json({ message: "Item updated", item });
+  } catch (error) {
+    console.error("Add units error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 export default router;
