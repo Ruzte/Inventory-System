@@ -1,5 +1,6 @@
 import express from "express";
 import Item from "../models/Item.js";
+import Sale from "../models/sale.js";
 
 const router = express.Router();
 
@@ -46,6 +47,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+// PATCH /api/items/:id/add-units - Add units to item
 router.patch("/:id/add-units", async (req, res) => {
   const { id } = req.params;
   const { addQuantity } = req.body;
@@ -60,6 +62,59 @@ router.patch("/:id/add-units", async (req, res) => {
     res.json({ message: "Item updated", item });
   } catch (error) {
     console.error("Add units error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// POST /api/items/sale - Make a sale
+router.post("/sale", async (req, res) => {
+  try {
+    const { itemId, unitsSold } = req.body;
+
+    const item = await Item.findById(itemId);
+    if (!item) return res.status(404).json({ error: "Item not found" });
+
+    if (item.unitAmount < unitsSold) {
+      return res.status(400).json({ error: "Not enough units in stock" });
+    }
+
+    item.unitAmount -= unitsSold;
+    await item.save();
+
+    const totalValue = unitsSold * item.unitPrice;
+
+    const newSale = new Sale({
+      itemId: item._id,
+      unitsSold,
+      unitPrice: item.unitPrice,
+      totalValue,
+    });
+
+    await newSale.save();
+
+    res.status(200).json({ message: "Sale recorded", sale: newSale });
+  } catch (error) {
+    console.error("Sale error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// GET /api/items/sales-total - Get total sales revenue
+router.get("/sales-total", async (req, res) => {
+  try {
+    const totalSales = await Sale.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$totalValue" }
+        }
+      }
+    ]);
+
+    const revenue = totalSales[0]?.totalRevenue || 0;
+    res.json({ totalRevenue: revenue });
+  } catch (err) {
+    console.error("Error calculating total sales revenue:", err);
     res.status(500).json({ message: "Server error" });
   }
 });

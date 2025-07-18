@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
+import Statistics from '../components/statistics';
+import LineChart from "../components/lineChart"; 
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -12,7 +14,7 @@ function Dashboard() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [addQuantity, setAddQuantity] = useState(1);
 
-  // ⬇️ Make fetchItems accessible globally
+  // fetchItems accessible globally
   const fetchItems = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/items");
@@ -75,7 +77,7 @@ function Dashboard() {
         setShowSaleModal(false);
         setSelectedItem(null);
         setSaleUnits(1);
-        setDropdownKey(prev => prev + 1); // reset dropdowns
+        setDropdownKey(prev => prev + 1);
       } else {
         alert("Failed to update item.");
       }
@@ -97,7 +99,7 @@ function Dashboard() {
 
       if (res.ok) {
         alert("Units added successfully!");
-        fetchItems(); // ⬅️ now accessible here
+        fetchItems(); 
       } else {
         alert(data.message || "Failed to add units.");
       }
@@ -126,7 +128,7 @@ function Dashboard() {
       });
 
       if (res.ok) {
-        fetchItems(); // ⬅️ refresh items after soft delete
+        fetchItems(); 
         setShowDeleteModal(false);
         setSelectedItem(null);
       } else {
@@ -168,19 +170,19 @@ function Dashboard() {
             </thead>
             <tbody>
               {items
-              .filter((item) => item.status !== "Deleted") // ⬅️ Soft delete filter
+              .filter((item) => item.status !== "Deleted") 
               .map((item) => {
                 const totalPoints = item.unitAmount * item.points;
                 const totalPrice = item.unitAmount * item.unitPrice;
                 return (
                   <tr key={item._id}>
                     <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
-                    <td className="p-2 border">{item.name}</td>
-                    <td className="p-2 border">{item.points}</td>
-                    <td className="p-2 border">{item.unitPrice}</td>
-                    <td className="p-2 border">{item.unitAmount}</td>
-                    <td className="p-2 border">{totalPoints}</td>
-                    <td className="p-2 border">{totalPrice}</td>
+                    <td className="p-2 border text-center">{item.name}</td>
+                    <td className="p-2 border text-center">{item.points}</td>
+                    <td className="p-2 border text-center">{item.unitPrice}</td>
+                    <td className="p-2 border text-center">{item.unitAmount}</td>
+                    <td className="p-2 border text-center">{totalPoints}</td>
+                    <td className="p-2 border text-center">{totalPrice}</td>
                     <td className="p-2 border">
                       <select 
                         key={dropdownKey}
@@ -333,8 +335,8 @@ function Dashboard() {
         <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between ">
           <h2 className="text-xl text-[#89AE29] font-bold mb-4">STATISTICS</h2>
           <div className="space-y-4">
-            <div className="bg-green-100 p-4 rounded shadow text-center font-semibold text-green-800">GAIN</div>
-            <div className="bg-red-100 p-4 rounded shadow text-center font-semibold text-red-800">LOSS</div>
+            <LineChart />
+            <Statistics items={items} />
           </div>
         </div>
       </div>
