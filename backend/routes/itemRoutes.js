@@ -98,6 +98,17 @@ router.post("/sale", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+// GET /api/items/sales - Get all sales with item details
+router.get("/sales", async (req, res) => {
+  try {
+    const sales = await Sale.find().populate("itemId");
+    res.json(sales);
+  } catch (error) {
+    console.error("Error fetching sales:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 // GET /api/items/sales-total - Get total sales revenue
 router.get("/sales-total", async (req, res) => {

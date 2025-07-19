@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import Statistics from '../components/statistics';
-import LineChart from "../components/lineChart"; 
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -13,6 +12,10 @@ function Dashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [addQuantity, setAddQuantity] = useState(1);
+  // Add this state to trigger statistics refresh
+  const [salesRefreshTrigger, setSalesRefreshTrigger] = useState(0);
+  // Add search functionality
+  const [searchTerm, setSearchTerm] = useState("");
 
   // fetchItems accessible globally
   const fetchItems = async () => {
@@ -23,6 +26,26 @@ function Dashboard() {
     } catch (err) {
       console.error("Failed to fetch items:", err);
     }
+  };
+
+  // Filter and sort items based on search
+  const getFilteredItems = () => {
+    const availableItems = items.filter((item) => item.status !== "Deleted");
+    
+    if (!searchTerm.trim()) {
+      return availableItems;
+    }
+    
+    const searchLower = searchTerm.toLowerCase();
+    const matchingItems = availableItems.filter(item => 
+      item.name.toLowerCase().includes(searchLower)
+    );
+    const nonMatchingItems = availableItems.filter(item => 
+      !item.name.toLowerCase().includes(searchLower)
+    );
+    
+    // Return matching items first, then non-matching items
+    return [...matchingItems, ...nonMatchingItems];
   };
 
   useEffect(() => {
@@ -54,35 +77,41 @@ function Dashboard() {
     }
   };
 
+  // Updated handleSaleConfirm to use the correct sales API
   const handleSaleConfirm = async () => {
     if (!selectedItem || saleUnits <= 0 || saleUnits > selectedItem.unitAmount) {
       alert("Invalid sale amount.");
       return;
     }
 
-    const updatedItem = {
-      ...selectedItem,
-      unitAmount: selectedItem.unitAmount - saleUnits
-    };
-
     try {
-      const res = await fetch(`http://localhost:5000/api/items/${selectedItem._id}`, {
-        method: "PUT",
+      // Use the correct sales endpoint
+      const res = await fetch("http://localhost:5000/api/items/sale", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedItem),
+        body: JSON.stringify({
+          itemId: selectedItem._id,
+          unitsSold: saleUnits
+        }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        setItems(prev => prev.map(i => i._id === selectedItem._id ? updatedItem : i));
+        alert("Sale recorded successfully!");
+        // Refresh items to show updated inventory
+        fetchItems();
+        // Trigger statistics refresh
+        setSalesRefreshTrigger(prev => prev + 1);
         setShowSaleModal(false);
         setSelectedItem(null);
         setSaleUnits(1);
         setDropdownKey(prev => prev + 1);
       } else {
-        alert("Failed to update item.");
+        alert(data.error || "Failed to process sale.");
       }
     } catch (err) {
-      console.error("Sale update failed:", err);
+      console.error("Sale processing failed:", err);
       alert("Error processing sale.");
     }
   };
@@ -147,13 +176,33 @@ function Dashboard() {
         <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-[#89AE29] ">PRODUCTS</h2>
-            <button
-              type="button"
-              className="inline-block hover:scale-105 transition-transform duration-200 border px-3 py-1 rounded-md text-sm text-[#FEF5E3] bg-[#89AE29]"
-              onClick={() => navigate('/history')}
-            >
-              Transaction History
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Search Bar */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#89AE29] focus:border-transparent bg-white text-[#2F5D55] w-48"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                className="inline-block hover:scale-105 transition-transform duration-200 border px-3 py-1 rounded-md text-sm text-[#FEF5E3] bg-[#89AE29]"
+                onClick={() => navigate('/history')}
+              >
+                Transaction History
+              </button>
+            </div>
           </div>
           <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
             <thead className="bg-[#dbe6a6] text-center">
@@ -169,15 +218,22 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {items
-              .filter((item) => item.status !== "Deleted") 
-              .map((item) => {
+              {getFilteredItems().map((item) => {
                 const totalPoints = item.unitAmount * item.points;
                 const totalPrice = item.unitAmount * item.unitPrice;
+                const isHighlighted = searchTerm.trim() && 
+                  item.name.toLowerCase().includes(searchTerm.toLowerCase());
+                
                 return (
-                  <tr key={item._id}>
+                  <tr key={item._id} className={isHighlighted ? "bg-yellow-50" : ""}>
                     <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
-                    <td className="p-2 border text-center">{item.name}</td>
+                    <td className="p-2 border text-center">
+                      {isHighlighted ? (
+                        <span className="font-semibold text-[#89AE29]">{item.name}</span>
+                      ) : (
+                        item.name
+                      )}
+                    </td>
                     <td className="p-2 border text-center">{item.points}</td>
                     <td className="p-2 border text-center">{item.unitPrice}</td>
                     <td className="p-2 border text-center">{item.unitAmount}</td>
@@ -231,6 +287,12 @@ function Dashboard() {
                 >
                   +
                 </button>
+              </div>
+
+              {/* Show sale details */}
+              <div className="text-sm text-gray-600 mb-4 p-3 bg-gray-50 rounded">
+                <div>Sale Value: ₱{(saleUnits * selectedItem.unitPrice).toFixed(2)}</div>
+                <div>Points: {saleUnits * selectedItem.points}</div>
               </div>
 
               <div className="flex justify-end gap-2">
@@ -335,8 +397,8 @@ function Dashboard() {
         <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between ">
           <h2 className="text-xl text-[#89AE29] font-bold mb-4">STATISTICS</h2>
           <div className="space-y-4">
-            <LineChart />
-            <Statistics items={items} />
+            {/* Pass the salesRefreshTrigger to force refresh */}
+            <Statistics items={items} salesRefreshTrigger={salesRefreshTrigger} />
           </div>
         </div>
       </div>

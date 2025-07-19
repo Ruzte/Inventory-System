@@ -5,6 +5,7 @@ const saleSchema = new mongoose.Schema({
   dateSold: { type: Date, default: Date.now },
   unitsSold: { type: Number, required: true },
   unitPrice: { type: Number, required: true },
+  totalValue: { type: Number, required: true }, 
 });
 
 export default mongoose.model("Sale", saleSchema);
