@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import Statistics from '../components/statistics';
+import TotalSales from '../components/totalSales'; 
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -172,8 +173,8 @@ function Dashboard() {
   return (
     <div>
       <div className="grid grid-cols-3 gap-6">
-        {/* Inventory Section */}
-        <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md">
+        {/* Products Section */}
+        <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md min-h-96">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-[#89AE29] ">PRODUCTS</h2>
             <div className="flex items-center gap-3">
@@ -393,13 +394,22 @@ function Dashboard() {
           </div>
         )}
 
-        {/* Statistics Section */}
+        {/* Calendar Section */}
         <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between ">
-          <h2 className="text-xl text-[#89AE29] font-bold mb-4">STATISTICS</h2>
+          <h2 className="text-xl text-[#89AE29] font-bold mb-4">Calendar</h2>
           <div className="space-y-4">
-            {/* Pass the salesRefreshTrigger to force refresh */}
-            <Statistics items={items} salesRefreshTrigger={salesRefreshTrigger} />
+          {/*Calendar here*/}
           </div>
+        </div>
+        
+        {/* Statistics Section */}
+        <div className="col-span-2">
+            <Statistics items={items} salesRefreshTrigger={salesRefreshTrigger} />
+        </div>
+
+        <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between ">
+          <h2 className="text-xl text-[#89AE29] font-bold mb-4">Total Revenue</h2>
+          <TotalSales salesRefreshTrigger={salesRefreshTrigger} />
         </div>
       </div>
     </div>
