@@ -396,19 +396,20 @@ function Dashboard() {
 
         {/* Calendar Section */}
         <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between ">
-          <h2 className="text-xl text-[#89AE29] font-bold mb-4">Calendar</h2>
+          <h2 className="text-xl text-[#89AE29] font-bold mb-4">CALENDAR</h2>
           <div className="space-y-4">
           {/*Calendar here*/}
           </div>
         </div>
         
         {/* Statistics Section */}
-        <div className="col-span-2">
+        <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md">
+
             <Statistics items={items} salesRefreshTrigger={salesRefreshTrigger} />
         </div>
 
         <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between ">
-          <h2 className="text-xl text-[#89AE29] font-bold mb-4">Total Revenue</h2>
+          <h2 className="text-xl text-[#89AE29] font-bold mb-4">TOTAL REVENUE</h2>
           <TotalSales salesRefreshTrigger={salesRefreshTrigger} />
         </div>
       </div>
