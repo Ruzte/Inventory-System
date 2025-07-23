@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import logo from '../assets/IMS.png';
 
 function Login() {
   const navigate = useNavigate();
@@ -90,12 +91,16 @@ function Login() {
           
           {/* LEFT COLUMN */}
           <div className="w-1/2 flex-col items-center content-start text-wrap">
-            <h2 className="text-3xl font-bold text-[#2e5f52] text-left">
-              HELLO WORLD
-            </h2>
-            <p className="pt-4 text-sm text-[#2e5f52]">
-              This is an Inventory Management System to track inventory, add products and manage sales history.
-            </p>
+            <div>
+              <img 
+                src={logo}
+                alt="Logo"
+                className="w-44 h-44 my-8 rounded-full shadow-md mx-auto object-cover"
+              />
+            </div>
+            <p className="pt-4 text-sm text-[#2e5f52]">Smart inventory management made easy.</p>
+            
+            
           </div>
 
           {/* RIGHT COLUMN */}

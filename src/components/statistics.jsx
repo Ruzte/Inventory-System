@@ -16,29 +16,29 @@ const Statistics = ({ items }) => {
   const deletedItems = items.filter((item) => item.status === "Deleted").length;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-6 gap-2 ">
-      <div className="bg-[#FEF5E3] p-4 rounded-lg  transition-all duration-200 ease-in-out hover:scale-110 ">
-        <h2 className="text-sm text-gray-500">📦 Total Items </h2>
+    <div className="grid grid-cols-2 md:grid-cols-6 gap-2 h-full">
+      <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md  h-full flex flex-col justify-center">
+        <h2 className="text-sm font-bold text-[#89AE29] mb-4 text-center">📦 Total Items </h2>
         <p className="text-xl font-bold text-center ">{totalItems}</p>
       </div>
-      <div className="bg-[#FEF5E3] p-4 rounded-lg  transition-all duration-200 ease-in-out hover:scale-110">
-        <h2 className="text-sm text-gray-500">🔢 Total Units</h2>
-        <p className="text-xl font-bold text-center p-2">{totalUnits}</p>
+      <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md h-full flex flex-col justify-center">
+        <h2 className="text-sm font-bold text-[#89AE29] mb-4 text-center">🔢 Total Units</h2>
+        <p className="text-xl font-bold text-center">{totalUnits}</p>
       </div>
-      <div className="bg-[#FEF5E3] p-4 rounded-lg  transition-all duration-200 ease-in-out hover:scale-110">
-        <h2 className="text-sm text-gray-500">⭐ Total Points</h2>
+      <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md h-full flex flex-col justify-center">
+        <h2 className="text-sm font-bold text-[#89AE29] mb-4 text-center">⭐ Total Points</h2>
         <p className="text-xl font-bold text-center ">{totalPoints}</p>
       </div>
-      <div className="bg-[#FEF5E3] p-4 rounded-lg  transition-all duration-200 ease-in-out hover:scale-110">
-        <h2 className="text-sm text-gray-500">💰 Stock Value</h2>
+      <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md h-full flex flex-col justify-center">
+        <h2 className="text-sm font-bold text-[#89AE29] mb-4 text-center ">💰 Stock Value</h2>
         <p className="text-xl font-bold ">AED {totalRevenue.toFixed(2)}</p>
       </div>
-      <div className="bg-[#FEF5E3] p-4 rounded-lg  transition-all duration-200 ease-in-out hover:scale-110">
-        <h2 className="text-sm text-gray-500">🟢 Available Items</h2>
+      <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md h-full flex flex-col justify-center">
+        <h2 className="text-sm font-bold text-[#89AE29] mb-4 text-center">🟢 In Stock</h2>
         <p className="text-xl font-bold text-center">{availableItems}</p>
       </div>
-      <div className="bg-[#FEF5E3] p-4 rounded-lg  transition-all duration-200 ease-in-out hover:scale-110">
-        <h2 className="text-sm text-gray-500">❌ Deleted Items</h2>
+      <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md h-full flex flex-col justify-center ">
+        <h2 className="text-sm font-bold text-[#89AE29] mb-4 text-center">🔴 Deleted Items</h2>
         <p className="text-xl font-bold text-center ">{deletedItems}</p>
       </div>
       

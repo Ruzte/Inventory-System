@@ -27,10 +27,9 @@ const TotalSales = ({ salesRefreshTrigger }) => {
   }, [salesRefreshTrigger]);
 
   return (
-    <div className="bg-white p-4 rounded shadow">
-      <h2 className="text-sm text-gray-500">💵 Total Sales Revenue</h2>
-      <p className="text-2xl font-bold text-green-600">
-        ₱{totalSalesRevenue.toFixed(2)}
+    <div className=" p-4 rounded ">
+      <p className="text-2xl font-bold">
+        AED {totalSalesRevenue.toFixed(2)}
       </p>
     </div>
   );

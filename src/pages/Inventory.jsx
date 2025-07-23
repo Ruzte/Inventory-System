@@ -75,35 +75,37 @@
     return (
       <div>
         <div className="grid grid-cols-3 gap-6">
-          {/* Products Section */}
-          <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md">
+          {/* Inventory Section */}
+          <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-[35rem] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-[#89AE29] ">INVENTORY</h2>
             </div>
-            <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
-              <thead className="bg-[#dbe6a6] text-center">
-                <tr>
-                  <th className="p-2 border ">Date Added</th>
-                  <th className="p-2 border">Product</th>
-                  <th className="p-2 border ">Unit Amount</th>
-                  <th className="p-2 border ">Points</th>
-                  <th className="p-2 border ">Unit Price</th>
-                  <th className="p-2 border ">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={index}>
-                    <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
-                    <td className="p-2 border">{item.name}</td>
-                    <td className="p-2 border">{item.points}</td>
-                    <td className="p-2 border">{item.unitPrice}</td>
-                    <td className="p-2 border">{item.unitAmount}</td>
-                    <td className="p-2 border">{item.status}</td>
+            <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
+              <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
+                <thead className="sticky top-0 bg-[#dbe6a6] text-center">
+                  <tr>
+                    <th className="p-2 border ">Date Added</th>
+                    <th className="p-2 border">Product</th>
+                    <th className="p-2 border ">Unit Amount</th>
+                    <th className="p-2 border ">Points</th>
+                    <th className="p-2 border ">Unit Price</th>
+                    <th className="p-2 border ">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {items.map((item, index) => (
+                    <tr key={index}>
+                      <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
+                      <td className="p-2 border">{item.name}</td>
+                      <td className="p-2 border">{item.points}</td>
+                      <td className="p-2 border">{item.unitPrice}</td>
+                      <td className="p-2 border">{item.unitAmount}</td>
+                      <td className="p-2 border">{item.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Add Item */}
@@ -178,7 +180,7 @@
             </div>
 
           {/* Buttons */}
-              <div className="flex gap-4 mt-4">
+              <div className="flex flex-col gap-4 mt-4">
                   <button className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition">
                     Cancel
                   </button>

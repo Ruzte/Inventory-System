@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import Statistics from '../components/statistics';
 import TotalSales from '../components/totalSales'; 
+import Calendar from '../components/calendar'; 
+import '../scrollbar.css'; 
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -174,8 +176,8 @@ function Dashboard() {
     <div>
       <div className="grid grid-cols-3 gap-6">
         {/* Products Section */}
-        <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md min-h-96">
-          <div className="flex justify-between items-center mb-4">
+        <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-96 flex flex-col">
+          <div className="flex justify-between items-center mb-4 flex-shrink-0">
             <h2 className="text-xl font-bold text-[#89AE29] ">PRODUCTS</h2>
             <div className="flex items-center gap-3">
               {/* Search Bar */}
@@ -205,59 +207,61 @@ function Dashboard() {
               </button>
             </div>
           </div>
-          <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
-            <thead className="bg-[#dbe6a6] text-center">
-              <tr>
-                <th className="p-2 border w-24">Date Added</th>
-                <th className="p-2 border">Product</th>
-                <th className="p-2 border w-24">Points</th>
-                <th className="p-2 border w-24">Price</th>
-                <th className="p-2 border w-24">Unit</th>
-                <th className="p-2 border w-24">Total Points</th>
-                <th className="p-2 border w-24">Total Price</th>
-                <th className="p-2 border w-20">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {getFilteredItems().map((item) => {
-                const totalPoints = item.unitAmount * item.points;
-                const totalPrice = item.unitAmount * item.unitPrice;
-                const isHighlighted = searchTerm.trim() && 
-                  item.name.toLowerCase().includes(searchTerm.toLowerCase());
-                
-                return (
-                  <tr key={item._id} className={isHighlighted ? "bg-yellow-50" : ""}>
-                    <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
-                    <td className="p-2 border text-center">
-                      {isHighlighted ? (
-                        <span className="font-semibold text-[#89AE29]">{item.name}</span>
-                      ) : (
-                        item.name
-                      )}
-                    </td>
-                    <td className="p-2 border text-center">{item.points}</td>
-                    <td className="p-2 border text-center">{item.unitPrice}</td>
-                    <td className="p-2 border text-center">{item.unitAmount}</td>
-                    <td className="p-2 border text-center">{totalPoints}</td>
-                    <td className="p-2 border text-center">{totalPrice}</td>
-                    <td className="p-2 border">
-                      <select 
-                        key={dropdownKey}
-                        className="min-w-8 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#89AE29]"
-                        onChange={(e) => handleActionChange(e.target.value, item, e)}
-                        defaultValue=""
-                      >
-                        <option value="">Select Action</option>
-                        <option value="sale">Sale</option>
-                        <option value="add">Add Unit</option>
-                        <option value="delete">Delete</option>
-                      </select>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
+            <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
+              <thead className="sticky top-0 bg-[#dbe6a6] text-center z-10">
+                <tr>
+                  <th className="p-2 border w-24">Date Added</th>
+                  <th className="p-2 border">Product</th>
+                  <th className="p-2 border w-24">Points</th>
+                  <th className="p-2 border w-24">Price</th>
+                  <th className="p-2 border w-24">Unit</th>
+                  <th className="p-2 border w-24">Total Points</th>
+                  <th className="p-2 border w-24">Total Price</th>
+                  <th className="p-2 border w-20">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {getFilteredItems().map((item) => {
+                  const totalPoints = item.unitAmount * item.points;
+                  const totalPrice = item.unitAmount * item.unitPrice;
+                  const isHighlighted = searchTerm.trim() && 
+                    item.name.toLowerCase().includes(searchTerm.toLowerCase());
+                  
+                  return (
+                    <tr key={item._id} className={isHighlighted ? "bg-yellow-50" : ""}>
+                      <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
+                      <td className="p-2 border text-center">
+                        {isHighlighted ? (
+                          <span className="font-semibold text-[#89AE29]">{item.name}</span>
+                        ) : (
+                          item.name
+                        )}
+                      </td>
+                      <td className="p-2 border text-center">{item.points}</td>
+                      <td className="p-2 border text-center">{item.unitPrice}</td>
+                      <td className="p-2 border text-center">{item.unitAmount}</td>
+                      <td className="p-2 border text-center">{totalPoints}</td>
+                      <td className="p-2 border text-center">{totalPrice}</td>
+                      <td className="p-2 border">
+                        <select 
+                          key={dropdownKey}
+                          className="min-w-8 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#89AE29]"
+                          onChange={(e) => handleActionChange(e.target.value, item, e)}
+                          defaultValue=""
+                        >
+                          <option value="">Select Action</option>
+                          <option value="sale">Sale</option>
+                          <option value="add">Add Unit</option>
+                          <option value="delete">Delete</option>
+                        </select>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Sale Modal */}
@@ -396,20 +400,16 @@ function Dashboard() {
 
         {/* Calendar Section */}
         <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between ">
-          <h2 className="text-xl text-[#89AE29] font-bold mb-4">CALENDAR</h2>
-          <div className="space-y-4">
-          {/*Calendar here*/}
-          </div>
+            <Calendar />
         </div>
         
         {/* Statistics Section */}
-        <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md">
-
+        <div className="col-span-2 h-full">
             <Statistics items={items} salesRefreshTrigger={salesRefreshTrigger} />
         </div>
 
         <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between ">
-          <h2 className="text-xl text-[#89AE29] font-bold mb-4">TOTAL REVENUE</h2>
+          <h2 className="text-xl text-[#89AE29] font-bold mb-4">💵 TOTAL REVENUE</h2>
           <TotalSales salesRefreshTrigger={salesRefreshTrigger} />
         </div>
       </div>

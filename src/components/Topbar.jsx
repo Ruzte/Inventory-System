@@ -16,7 +16,7 @@ function Topbar() {
   }, []);
 
   return (
-    <div className="bg-[#89AE29] text-white px-6 py-3 mx-4 mt-4 rounded-full shadow-lg flex justify-between items-center">
+    <div className="bg-gradient-to-r  from-[#2e5f52] to-[#89ae29] text-white px-6 py-3 mx-4 mt-4 rounded-full shadow-lg flex justify-between items-center">
       
       {/* Profile + Username */}
       <div className="flex items-center gap-3">
