@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from '../assets/IMS.png';
+import customIcon from '../assets/leaf.ico';
 
 function Login() {
   const navigate = useNavigate();
@@ -98,7 +99,20 @@ function Login() {
                 className="w-44 h-44 my-8 rounded-full shadow-md mx-auto object-cover"
               />
             </div>
-            <p className="pt-4 text-sm text-[#2e5f52]">Smart inventory management made easy.</p>
+            <div className="pt-4 text-sm text-[#2e5f52] space-y-2">
+              <p className="flex items-center">
+                <img src={customIcon} alt="" className="w-4 h-4 mr-3" />
+                Smart inventory management made easy
+              </p>
+              <p className="flex items-center">
+                <img src={customIcon} alt="" className="w-4 h-4 mr-3" />
+                Smart inventory management made easy
+              </p>
+              <p className="flex items-center">
+                <img src={customIcon} alt="" className="w-4 h-4 mr-3" />
+                Smart inventory management made easy
+              </p>
+            </div>
             
             
           </div>

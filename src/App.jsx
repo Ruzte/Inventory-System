@@ -3,7 +3,6 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import History from './pages/History';
-import Profile from './pages/Profile';
 import Topbar from './components/Topbar';
 
 // Protected route wrapper
@@ -28,9 +27,7 @@ const Layout = ({ children }) => {
 };
 
 function App() {
-  if (!localStorage.getItem("user")) {
-    localStorage.setItem("user", JSON.stringify({ username: "admin", password: "123456" }));
-  }
+  
   
   return (
     <Router>
@@ -64,15 +61,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-
           {/* Catch-all route */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

@@ -33,7 +33,7 @@ router.post('/login', async (req, res) => {
   console.log("🛂 Attempt login with:", username, password);
 
   try {
-    const user = await User.findOne({});
+    const user = await User.findOne({username});
     console.log("🔍 Found user:", user);
 
     if (!user) {

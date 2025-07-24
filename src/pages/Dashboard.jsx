@@ -15,9 +15,7 @@ function Dashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [addQuantity, setAddQuantity] = useState(1);
-  // Add this state to trigger statistics refresh
   const [salesRefreshTrigger, setSalesRefreshTrigger] = useState(0);
-  // Add search functionality
   const [searchTerm, setSearchTerm] = useState("");
 
   // fetchItems accessible globally
@@ -178,7 +176,7 @@ function Dashboard() {
         {/* Products Section */}
         <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-96 flex flex-col">
           <div className="flex justify-between items-center mb-4 flex-shrink-0">
-            <h2 className="text-xl font-bold text-[#89AE29] ">PRODUCTS</h2>
+            <h2 className="text-xl font-bold text-[#2e5f52] ">PRODUCTS</h2>
             <div className="flex items-center gap-3">
               {/* Search Bar */}
               <div className="relative">
@@ -200,7 +198,7 @@ function Dashboard() {
               </div>
               <button
                 type="button"
-                className="inline-block hover:scale-105 transition-transform duration-200 border px-3 py-1 rounded-md text-sm text-[#FEF5E3] bg-[#89AE29]"
+                className="inline-block border px-3 py-1 rounded-md text-sm text-[#FEF5E3] bg-[#89AE29] hover:bg-[#2e5f52]"
                 onClick={() => navigate('/history')}
               >
                 Transaction History
@@ -246,7 +244,7 @@ function Dashboard() {
                       <td className="p-2 border">
                         <select 
                           key={dropdownKey}
-                          className="min-w-8 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#89AE29]"
+                          className="min-w-8 text-xs bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#89AE29]"
                           onChange={(e) => handleActionChange(e.target.value, item, e)}
                           defaultValue=""
                         >
@@ -276,7 +274,7 @@ function Dashboard() {
                   className="px-3 py-1 bg-[#dbe6a6] rounded text-[#2F5D55] hover:bg-[#c3d98a]"
                   onClick={() => setSaleUnits(prev => Math.max(1, prev - 1))}
                 >
-                  –
+                  -
                 </button>
                 <input
                   type="number"
@@ -302,7 +300,7 @@ function Dashboard() {
 
               <div className="flex justify-end gap-2">
                 <button
-                  className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                  className="bg-gray-300 px-4 py-2 rounded hover:bg-red-600 transition"
                   onClick={() => {
                     setShowSaleModal(false);
                     setSelectedItem(null);
@@ -311,10 +309,10 @@ function Dashboard() {
                   Cancel
                 </button>
                 <button
-                  className="bg-[#2e5f52] text-white px-4 py-2 rounded hover:bg-green-800"
+                  className="bg-[#89AE29] text-white px-4 py-2 rounded hover:bg-[#2e5f52] transition"
                   onClick={handleSaleConfirm}
                 >
-                  Confirm Sale
+                  Confirm 
                 </button>
               </div>
             </div>
@@ -324,34 +322,42 @@ function Dashboard() {
         {/* Add Item Modal */}
         {showAddModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white p-6 rounded shadow-md w-80">
-              <h2 className="text-lg font-semibold mb-4">Add Units to {selectedItem?.name}</h2>
+            <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+              <h2 className="text-lg text-[#2F5D55] font-bold mb-4">Add Units to {selectedItem?.name}</h2>
 
-              <div className="flex items-center justify-between mb-4">
+              <label className="text-sm text-[#2F5D55] mb-2 block">Units to Add:</label>
+              <div className="flex items-center gap-2 justify-between mb-4">
                 <button
-                  className="px-3 py-1 bg-gray-200 rounded"
+                  className="px-3 py-1 bg-[#dbe6a6] rounded text-[#2F5D55] hover:bg-[#c3d98a]"
                   onClick={() => setAddQuantity((prev) => Math.max(1, prev - 1))}
                 >
                   -
                 </button>
-                <span className="text-lg font-bold">{addQuantity}</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={selectedItem.unitAmount}
+                  value={addQuantity}
+                  readOnly
+                  className="w-full text-center p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
+                />
                 <button
-                  className="px-3 py-1 bg-gray-200 rounded"
+                  className="px-3 py-1 bg-[#dbe6a6] rounded text-[#2F5D55] hover:bg-[#c3d98a] "
                   onClick={() => setAddQuantity((prev) => prev + 1)}
                 >
                   +
                 </button>
               </div>
 
-              <div className="text-sm text-gray-600 mb-4">
+              <div className="text-sm text-gray-600 mb-4 p-3 ">
                 Total Points: {selectedItem?.points * addQuantity}
                 <br />
                 Total Price: ₱{selectedItem?.unitPrice * addQuantity}
               </div>
 
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end gap-2">
                 <button
-                  className="px-4 py-1 bg-gray-300 rounded"
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-red-600 transition"
                   onClick={() => {
                     setShowAddModal(false);
                     setAddQuantity(1);
@@ -360,7 +366,7 @@ function Dashboard() {
                   Cancel
                 </button>
                 <button
-                  className="px-4 py-1 bg-[#89AE29] text-white rounded"
+                  className=" bg-[#89AE29] text-white px-4 py-2 rounded hover:bg-[#2e5f52] transition"
                   onClick={handleAddUnitsConfirm}
                 >
                   Confirm
@@ -382,13 +388,13 @@ function Dashboard() {
               </p>
               <div className="flex justify-end gap-2">
                 <button
-                  className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                  className="bg-gray-300 px-4 py-2 rounded hover:bg-[#2e5f52] transition"
                   onClick={() => setShowDeleteModal(false)}
                 >
                   Cancel
                 </button>
                 <button
-                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
                   onClick={handleDeleteConfirm}
                 >
                   Confirm Delete
@@ -409,7 +415,7 @@ function Dashboard() {
         </div>
 
         <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between ">
-          <h2 className="text-xl text-[#89AE29] font-bold mb-4">💵 TOTAL REVENUE</h2>
+          <h2 className="text-xl text-[#2e5f52] font-bold mb-4">TOTAL REVENUE</h2>
           <TotalSales salesRefreshTrigger={salesRefreshTrigger} />
         </div>
       </div>

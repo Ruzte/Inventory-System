@@ -78,7 +78,7 @@
           {/* Inventory Section */}
           <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-[35rem] flex flex-col">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-[#89AE29] ">INVENTORY</h2>
+              <h2 className="text-xl font-bold text-[#2e5f52] ">INVENTORY</h2>
             </div>
             <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
               <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
@@ -110,7 +110,7 @@
 
           {/* Add Item */}
           <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between">
-            <h2 className="text-xl text-[#89AE29] font-bold mb-4 ">ADD PRODUCT</h2>
+            <h2 className="text-xl text-[#2e5f52] font-bold mb-4 ">ADD PRODUCT</h2>
             {/* Item Name */}
             <label className="text-sm text-[#2F5D55] mb-1">Product Name</label>
             <input
@@ -186,7 +186,7 @@
                   </button>
                   <button
                     onClick={handleConfirm}
-                    className="bg-[#2e5f52] text-white px-4 py-2 rounded shadow hover:bg-green-800 transition"
+                    className="bg-[#89AE29] text-white px-4 py-2 rounded shadow hover:bg-green-800 transition"
                   >
                     Confirm
                   </button>

@@ -106,7 +106,7 @@ const Calendar = () => {
       <div className="mt-3 pt-3 border-t border-[#89AE29]/20">
         <button
           onClick={() => setCurrentDate(new Date())}
-          className="w-full py-2 px-3 text-sm bg-[#89AE29] text-white rounded-md hover:bg-[#7a9625] transition-colors"
+          className="w-full py-2 px-3 text-sm bg-[#89AE29] text-white rounded-md hover:bg-[#2e5f52] transition-colors"
         >
           Today
         </button>

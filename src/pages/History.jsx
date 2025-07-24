@@ -59,7 +59,7 @@ function History() {
         {/* Inventory Section */}
         <div className="col-span-3 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-[35rem] flex flex-col">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-[#89AE29] ">TRANSACTION HISTORY</h2>
+            <h2 className="text-xl font-bold text-[#2e5f52] ">TRANSACTION HISTORY</h2>
             
             {/* Search Bar */}
             <div className="relative">
@@ -108,10 +108,10 @@ function History() {
                     <td className="p-2 border">{new Date(sale.itemId.dateAdded).toLocaleDateString()}</td>
                     <td className="p-2 border">{sale.itemId.name}</td>
                     <td className="p-2 border">{sale.itemId.points}</td>
-                    <td className="p-2 border">₱{sale.unitPrice.toFixed(2)}</td>
+                    <td className="p-2 border">AED {sale.unitPrice.toFixed(2)}</td>
                     <td className="p-2 border">1</td>
                     <td className="p-2 border">{sale.totalPoints}</td>
-                    <td className="p-2 border">₱{sale.totalPrice.toFixed(2)}</td>
+                    <td className="p-2 border">AED {sale.totalPrice.toFixed(2)}</td>
                     <td className="p-2 border">{new Date(sale.dateSold).toLocaleDateString()}</td>
                     <td className="p-2 border">{sale.unitsSold}</td>
                   </tr>

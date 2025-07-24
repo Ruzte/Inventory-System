@@ -29,7 +29,7 @@ const TotalSales = ({ salesRefreshTrigger }) => {
   return (
     <div className=" p-4 rounded ">
       <p className="text-2xl font-bold">
-        AED {totalSalesRevenue.toFixed(2)}
+        💵{totalSalesRevenue.toFixed(2)}
       </p>
     </div>
   );
