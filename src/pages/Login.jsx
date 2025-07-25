@@ -12,6 +12,10 @@ function Login() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  // Signup specific states
+  const [signupError, setSignupError] = useState("");
+  const [signupSuccess, setSignupSuccess] = useState("");
 
   const handleLogin = async () => {
     setError(""); // Clear previous error
@@ -22,7 +26,7 @@ function Login() {
         headers: { 
           "Content-Type": "application/json" 
         },
-        credentials: 'include', // Added for CORS credentials
+        credentials: 'include',
         body: JSON.stringify({ username, password }),
       });
 
@@ -30,21 +34,17 @@ function Login() {
 
       if (res.ok) {
         localStorage.setItem("loggedIn", "true");
-        // Store user object instead of just username string
         localStorage.setItem("user", JSON.stringify({ 
           username: username,
           password: password,
         }));
         
-        // Start the zoom transition
         setIsTransitioning(true);
         
-        // Navigate after the zoom effect completes
         setTimeout(() => {
           navigate("/dashboard");
-        }, 1000); // 1 second for the zoom effect
+        }, 1000);
       } else {
-        // Handle both 'error' and 'message' properties from backend
         setError(data.error || data.message || "Login failed.");
       }
     } catch (error) {
@@ -54,8 +54,12 @@ function Login() {
   };
 
   const handleSignup = async () => {
+    // Clear previous messages
+    setSignupError("");
+    setSignupSuccess("");
+
     if (newPassword !== confirmPassword) {
-      alert("Passwords do not match.");
+      setSignupError("Passwords do not match.");
       return;
     }
 
@@ -75,17 +79,22 @@ function Login() {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Account created successfully! You can now log in.");
+        setSignupSuccess("Account created successfully! You can now log in.");
         // Clear signup form
         setNewUsername("");
         setNewPassword("");
         setConfirmPassword("");
+        
+        // Auto-clear success message after 5 seconds
+        setTimeout(() => {
+          setSignupSuccess("");
+        }, 5000);
       } else {
-        alert(data.error || data.message || "Signup failed.");
+        setSignupError(data.error || data.message || "Signup failed.");
       }
     } catch (error) {
       console.error("Signup error:", error);
-      alert("Something went wrong during signup. Please try again.");
+      setSignupError("Something went wrong during signup. Please try again.");
     }
   };
 
@@ -134,8 +143,6 @@ function Login() {
                 Smart inventory management made easy
               </p>
             </div>
-            
-            
           </div>
 
           {/* RIGHT COLUMN */}
@@ -143,6 +150,19 @@ function Login() {
             {/* SIGN UP */}
             <div className="mb-4">
               <h3 className="text-base font-semibold text-[#2e5f52] mb-2">Create an Account</h3>
+              
+              {/* Signup status messages */}
+              {signupError && (
+                <div className="mb-3 p-2 bg-red-100 border border-red-300 text-red-700 text-xs rounded">
+                  {signupError}
+                </div>
+              )}
+              {signupSuccess && (
+                <div className="mb-3 p-2 bg-green-100 border border-green-300 text-green-700 text-xs rounded">
+                  {signupSuccess}
+                </div>
+              )}
+              
               <input
                 type="text"
                 placeholder="New Username"

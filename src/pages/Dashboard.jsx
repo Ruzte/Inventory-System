@@ -1,9 +1,70 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Statistics from '../components/statistics';
 import TotalSales from '../components/totalSales'; 
 import Calendar from '../components/calendar'; 
+import Modal from '../components/modal'; 
+import UnitSelector from '../components/unitSelector'; 
 import '../scrollbar.css'; 
+
+function ActionDropdown({ item, onSelect }) {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef();
+
+  useEffect(() => {
+    const close = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  return (
+    <div ref={dropdownRef} className="relative inline-block text-left w-[115px]">
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        className="w-full text-xs bg-[#f0f0f0] text-[#2F5D55] border border-gray-300 rounded-full px-3 py-1 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#89AE29] transition duration-150 ease-in-out"
+      >
+        Select Action
+      </button>
+      <div
+        className={`absolute left-0 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-md transform origin-top transition-all duration-200 z-10 ${
+          open ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0 pointer-events-none"
+        }`}
+      >
+        <button
+          className="block w-full text-left px-4 py-2 text-xs hover:bg-[#f0f0f0] text-[#2F5D55]"
+          onClick={() => {
+            onSelect("sale", item);
+            setOpen(false);
+          }}
+        >
+          Sale
+        </button>
+        <button
+          className="block w-full text-left px-4 py-2 text-xs hover:bg-[#f0f0f0] text-[#2F5D55]"
+          onClick={() => {
+            onSelect("add", item);
+            setOpen(false);
+          }}
+        >
+          Add Unit
+        </button>
+        <button
+          className="block w-full text-left px-4 py-2 text-xs text-red-500 hover:bg-[#f0f0f0]"
+          onClick={() => {
+            onSelect("delete", item);
+            setOpen(false);
+          }}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -11,14 +72,12 @@ function Dashboard() {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [saleUnits, setSaleUnits] = useState(1);
-  const [dropdownKey, setDropdownKey] = useState(0); 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [addQuantity, setAddQuantity] = useState(1);
   const [salesRefreshTrigger, setSalesRefreshTrigger] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // fetchItems accessible globally
   const fetchItems = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/items");
@@ -29,56 +88,32 @@ function Dashboard() {
     }
   };
 
-  // Filter and sort items based on search
-  const getFilteredItems = () => {
-    const availableItems = items.filter((item) => item.status !== "Deleted");
-    
-    if (!searchTerm.trim()) {
-      return availableItems;
-    }
-    
-    const searchLower = searchTerm.toLowerCase();
-    const matchingItems = availableItems.filter(item => 
-      item.name.toLowerCase().includes(searchLower)
-    );
-    const nonMatchingItems = availableItems.filter(item => 
-      !item.name.toLowerCase().includes(searchLower)
-    );
-    
-    // Return matching items first, then non-matching items
-    return [...matchingItems, ...nonMatchingItems];
-  };
-
   useEffect(() => {
     fetchItems();
   }, []);
 
-  const handleActionChange = (action, item, e) => {
+  const getFilteredItems = () => {
+    const availableItems = items.filter((item) => item.status !== "Deleted");
+    if (!searchTerm.trim()) return availableItems;
+    const searchLower = searchTerm.toLowerCase();
+    const matches = availableItems.filter((item) => item.name.toLowerCase().includes(searchLower));
+    const nonMatches = availableItems.filter((item) => !item.name.toLowerCase().includes(searchLower));
+    return [...matches, ...nonMatches];
+  };
+
+  const handleActionChange = (action, item) => {
     setSelectedItem(item);
-
-    switch (action) {
-      case 'sale':
-        setSaleUnits(1);
-        setShowSaleModal(true);
-        break;
-      case 'add':
-        setAddQuantity(1);
-        setShowAddModal(true);
-        break;
-      case 'delete':
-        setShowDeleteModal(true);
-        break;
-      default:
-        break;
-    }
-
-    // Reset dropdown to "Select Action"
-    if (e?.target) {
-      e.target.selectedIndex = 0;
+    if (action === "sale") {
+      setSaleUnits(1);
+      setShowSaleModal(true);
+    } else if (action === "add") {
+      setAddQuantity(1);
+      setShowAddModal(true);
+    } else if (action === "delete") {
+      setShowDeleteModal(true);
     }
   };
 
-  // Updated handleSaleConfirm to use the correct sales API
   const handleSaleConfirm = async () => {
     if (!selectedItem || saleUnits <= 0 || saleUnits > selectedItem.unitAmount) {
       alert("Invalid sale amount.");
@@ -86,28 +121,20 @@ function Dashboard() {
     }
 
     try {
-      // Use the correct sales endpoint
       const res = await fetch("http://localhost:5000/api/items/sale", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          itemId: selectedItem._id,
-          unitsSold: saleUnits
-        }),
+        body: JSON.stringify({ itemId: selectedItem._id, unitsSold: saleUnits }),
       });
-
       const data = await res.json();
 
       if (res.ok) {
         alert("Sale recorded successfully!");
-        // Refresh items to show updated inventory
         fetchItems();
-        // Trigger statistics refresh
         setSalesRefreshTrigger(prev => prev + 1);
         setShowSaleModal(false);
         setSelectedItem(null);
         setSaleUnits(1);
-        setDropdownKey(prev => prev + 1);
       } else {
         alert(data.error || "Failed to process sale.");
       }
@@ -145,16 +172,11 @@ function Dashboard() {
   const handleDeleteConfirm = async () => {
     if (!selectedItem) return;
 
-    const updatedItem = {
-      ...selectedItem,
-      status: "Deleted"
-    };
-
     try {
       const res = await fetch(`http://localhost:5000/api/items/${selectedItem._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedItem),
+        body: JSON.stringify({ ...selectedItem, status: "Deleted" }),
       });
 
       if (res.ok) {
@@ -172,20 +194,19 @@ function Dashboard() {
 
   return (
     <div>
-      <div className="grid grid-cols-3 gap-6 ">
-        {/* Products Section */}
+      <div className="grid grid-cols-3 gap-6">
+        {/* Products */}
         <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-[60vh] flex flex-col">
-          <div className="flex justify-between items-center mb-4 flex-shrink-0">
-            <h2 className="text-xl font-bold text-[#2e5f52] ">PRODUCTS</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-[#2e5f52]">PRODUCTS</h2>
             <div className="flex items-center gap-3">
-              {/* Search Bar */}
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search products..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#89AE29] focus:border-transparent bg-white text-[#2F5D55] w-48"
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#89AE29] bg-white text-[#2F5D55] w-48"
                 />
                 {searchTerm && (
                   <button
@@ -198,7 +219,7 @@ function Dashboard() {
               </div>
               <button
                 type="button"
-                className="inline-block border px-3 py-1 rounded-md text-sm text-[#FEF5E3] bg-[#89AE29] hover:bg-[#2e5f52]"
+                className="border px-3 py-1 rounded-md text-sm text-[#FEF5E3] bg-[#89AE29] hover:bg-[#2e5f52]"
                 onClick={() => navigate('/history')}
               >
                 Transaction History
@@ -216,43 +237,44 @@ function Dashboard() {
                   <th className="p-2 border w-24">Units</th>
                   <th className="p-2 border w-24">Total Points</th>
                   <th className="p-2 border w-24">Total Price</th>
-                  <th className="p-2 border w-20">Action</th>
+                  <th className="p-2 border w-24">Action</th>
+                  <th className="p-2 border w-24">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {getFilteredItems().map((item) => {
                   const totalPoints = item.unitAmount * item.points;
                   const totalPrice = item.unitAmount * item.unitPrice;
-                  const isHighlighted = searchTerm.trim() && 
-                    item.name.toLowerCase().includes(searchTerm.toLowerCase());
-                  
+                  const isHighlighted = searchTerm.trim() && item.name.toLowerCase().includes(searchTerm.toLowerCase());
+
                   return (
                     <tr key={item._id} className={isHighlighted ? "bg-yellow-50" : ""}>
                       <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
                       <td className="p-2 border text-center">
-                        {isHighlighted ? (
-                          <span className="font-semibold text-[#89AE29]">{item.name}</span>
-                        ) : (
-                          item.name
-                        )}
+                        {isHighlighted ? <span className="font-semibold text-[#89AE29]">{item.name}</span> : item.name}
                       </td>
                       <td className="p-2 border text-center">{item.points}</td>
                       <td className="p-2 border text-center">{item.unitPrice}</td>
                       <td className="p-2 border text-center">{item.unitAmount}</td>
                       <td className="p-2 border text-center">{totalPoints}</td>
                       <td className="p-2 border text-center">{totalPrice}</td>
-                      <td className="p-2 border">
-                        <select 
-                          key={dropdownKey}
-                          className="min-w-8 text-xs bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#89AE29]"
-                          onChange={(e) => handleActionChange(e.target.value, item, e)}
-                          defaultValue=""
-                        >
-                          <option value="">Select Action</option>
-                          <option value="sale">Sale</option>
-                          <option value="add">Add Unit</option>
-                          <option value="delete">Delete</option>
-                        </select>
+                      <td className="p-2 border text-center">
+                        <ActionDropdown item={item} onSelect={handleActionChange} />
+                      </td>
+                      <td className="p-2 border text-center">
+                        {item.status === "Deleted" ? (
+                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold">
+                            Deleted
+                          </span>
+                        ) : item.unitAmount === 0 ? (
+                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold">
+                            No Stock
+                          </span>
+                        ) : (
+                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold">
+                            Available
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );
@@ -262,159 +284,64 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Sale Modal */}
+        {/* Modals */}
         {showSaleModal && selectedItem && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-              <h3 className="text-lg font-bold text-[#2F5D55] mb-4">Sell Units for {selectedItem.name}</h3>
-
-              <label className="text-sm text-[#2F5D55] mb-2 block">Units to Sell:</label>
-              <div className="flex items-center gap-2 mb-4">
-                <button
-                  className="px-3 py-1 bg-[#dbe6a6] rounded text-[#2F5D55] hover:bg-[#c3d98a]"
-                  onClick={() => setSaleUnits(prev => Math.max(1, prev - 1))}
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  min={1}
-                  max={selectedItem.unitAmount}
-                  value={saleUnits}
-                  readOnly
-                  className="w-full text-center p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
-                />
-                <button
-                  className="px-3 py-1 bg-[#dbe6a6] rounded text-[#2F5D55] hover:bg-[#c3d98a]"
-                  onClick={() => setSaleUnits(prev => Math.min(selectedItem.unitAmount, prev + 1))}
-                >
-                  +
-                </button>
-              </div>
-
-              {/* Show sale details */}
-              <div className="text-sm text-gray-600 mb-4 p-3 bg-gray-50 rounded">
-                <div>Sale Value: ₱{(saleUnits * selectedItem.unitPrice).toFixed(2)}</div>
-                <div>Points: {saleUnits * selectedItem.points}</div>
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <button
-                  className="bg-gray-300 px-4 py-2 rounded hover:bg-red-600 transition"
-                  onClick={() => {
-                    setShowSaleModal(false);
-                    setSelectedItem(null);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="bg-[#89AE29] text-white px-4 py-2 rounded hover:bg-[#2e5f52] transition"
-                  onClick={handleSaleConfirm}
-                >
-                  Confirm 
-                </button>
-              </div>
-            </div>
-          </div>
+          <Modal
+            title={`Sell Units for ${selectedItem.name}`}
+            onCancel={() => { setShowSaleModal(false); setSelectedItem(null); }}
+            onConfirm={handleSaleConfirm}
+            confirmText="Confirm"
+          >
+            <UnitSelector
+              value={saleUnits}
+              setValue={setSaleUnits}
+              max={selectedItem.unitAmount}
+              label="Units to Sell:"
+              price={selectedItem.unitPrice}
+              points={selectedItem.points}
+            />
+          </Modal>
         )}
 
-        {/* Add Item Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-              <h2 className="text-lg text-[#2F5D55] font-bold mb-4">Add Units to {selectedItem?.name}</h2>
-
-              <label className="text-sm text-[#2F5D55] mb-2 block">Units to Add:</label>
-              <div className="flex items-center gap-2 justify-between mb-4">
-                <button
-                  className="px-3 py-1 bg-[#dbe6a6] rounded text-[#2F5D55] hover:bg-[#c3d98a]"
-                  onClick={() => setAddQuantity((prev) => Math.max(1, prev - 1))}
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  min={1}
-                  max={selectedItem.unitAmount}
-                  value={addQuantity}
-                  readOnly
-                  className="w-full text-center p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
-                />
-                <button
-                  className="px-3 py-1 bg-[#dbe6a6] rounded text-[#2F5D55] hover:bg-[#c3d98a] "
-                  onClick={() => setAddQuantity((prev) => prev + 1)}
-                >
-                  +
-                </button>
-              </div>
-
-              <div className="text-sm text-gray-600 mb-4 p-3 ">
-                Total Points: {selectedItem?.points * addQuantity}
-                <br />
-                Total Price: ₱{selectedItem?.unitPrice * addQuantity}
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <button
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-red-600 transition"
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setAddQuantity(1);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  className=" bg-[#89AE29] text-white px-4 py-2 rounded hover:bg-[#2e5f52] transition"
-                  onClick={handleAddUnitsConfirm}
-                >
-                  Confirm
-                </button>
-              </div>
-            </div>
-          </div>
+        {showAddModal && selectedItem && (
+          <Modal
+            title={`Add Units to ${selectedItem.name}`}
+            onCancel={() => { setShowAddModal(false); setAddQuantity(1); }}
+            onConfirm={handleAddUnitsConfirm}
+            confirmText="Confirm"
+          >
+            <UnitSelector
+              value={addQuantity}
+              setValue={setAddQuantity}
+              label="Units to Add:"
+              price={selectedItem.unitPrice}
+              points={selectedItem.points}
+            />
+          </Modal>
         )}
 
-        {/* Delete Modal */}
         {showDeleteModal && selectedItem && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-              <h3 className="text-lg font-bold text-[#2F5D55] mb-4">
-                Delete {selectedItem.name}?
-              </h3>
-              <p className="text-sm text-gray-700 mb-4">
-                Are you sure you want to delete this item? This will mark the item as deleted but keep it in records.
-              </p>
-              <div className="flex justify-end gap-2">
-                <button
-                  className="bg-gray-300 px-4 py-2 rounded hover:bg-[#2e5f52] transition"
-                  onClick={() => setShowDeleteModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
-                  onClick={handleDeleteConfirm}
-                >
-                  Confirm Delete
-                </button>
-              </div>
-            </div>
-          </div>
+          <Modal
+            title={`Delete ${selectedItem.name}?`}
+            onCancel={() => setShowDeleteModal(false)}
+            onConfirm={handleDeleteConfirm}
+            confirmText="Confirm Delete"
+            danger
+          >
+            <p className="text-sm text-gray-700">
+              Are you sure you want to delete this item? This will mark the item as deleted but keep it in records.
+            </p>
+          </Modal>
         )}
 
-        {/* Calendar Section */}
-        <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between ">
-            <Calendar />
+        {/* Calendar & Statistics */}
+        <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between">
+          <Calendar />
         </div>
-        
-        {/* Statistics Section */}
         <div className="col-span-2 h-full">
-            <Statistics items={items} salesRefreshTrigger={salesRefreshTrigger} />
+          <Statistics items={items} salesRefreshTrigger={salesRefreshTrigger} />
         </div>
-
-        <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between ">
+        <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between">
           <h2 className="text-xl text-[#2e5f52] font-bold mb-4">TOTAL REVENUE</h2>
           <TotalSales salesRefreshTrigger={salesRefreshTrigger} />
         </div>
@@ -422,5 +349,7 @@ function Dashboard() {
     </div>
   );
 }
+
+
 
 export default Dashboard;

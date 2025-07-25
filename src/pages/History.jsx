@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import '../scrollbar.css';
 
 function History() {
   const [sales, setSales] = useState([]);
@@ -80,45 +81,46 @@ function History() {
               )}
             </div>
           </div>
-          
-          <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
-            <thead className="bg-[#dbe6a6] text-center">
-              <tr>
-                <th className="p-2 border">Date Added</th>
-                <th className="p-2 border">Product</th>
-                <th className="p-2 border">Points</th>
-                <th className="p-2 border">Price</th>
-                <th className="p-2 border">Unit</th>
-                <th className="p-2 border">Total Points</th>
-                <th className="p-2 border">Total Price</th>
-                <th className="p-2 border">Date Sold</th>
-                <th className="p-2 border">Total Units Sold</th>
-              </tr>
-            </thead>
-            <tbody className="text-center">
-              {filteredSales.length === 0 ? (
+          <div className="flex-1 overflow-x-auto min-h-0 custom-scrollbar">
+            <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
+              <thead className="sticky top-0 bg-[#dbe6a6] text-center z-10">
                 <tr>
-                  <td colSpan="9" className="p-4 text-gray-400 italic">
-                    {searchTerm ? `No products found matching "${searchTerm}"` : "No transactions yet."}
-                  </td>
+                  <th className="p-2 border">Date Added</th>
+                  <th className="p-2 border">Product</th>
+                  <th className="p-2 border">Points</th>
+                  <th className="p-2 border">Price</th>
+                  <th className="p-2 border">Unit</th>
+                  <th className="p-2 border">Total Points</th>
+                  <th className="p-2 border">Total Price</th>
+                  <th className="p-2 border">Date Sold</th>
+                  <th className="p-2 border">Total Units Sold</th>
                 </tr>
-              ) : (
-                filteredSales.map((sale, index) => (
-                  <tr key={index}>
-                    <td className="p-2 border">{new Date(sale.itemId.dateAdded).toLocaleDateString()}</td>
-                    <td className="p-2 border">{sale.itemId.name}</td>
-                    <td className="p-2 border">{sale.itemId.points}</td>
-                    <td className="p-2 border">AED {sale.unitPrice.toFixed(2)}</td>
-                    <td className="p-2 border">1</td>
-                    <td className="p-2 border">{sale.totalPoints}</td>
-                    <td className="p-2 border">AED {sale.totalPrice.toFixed(2)}</td>
-                    <td className="p-2 border">{new Date(sale.dateSold).toLocaleDateString()}</td>
-                    <td className="p-2 border">{sale.unitsSold}</td>
+              </thead>
+              <tbody className="text-center">
+                {filteredSales.length === 0 ? (
+                  <tr>
+                    <td colSpan="9" className="p-4 text-gray-400 italic">
+                      {searchTerm ? `No products found matching "${searchTerm}"` : "No transactions yet."}
+                    </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filteredSales.map((sale, index) => (
+                    <tr key={index}>
+                      <td className="p-2 border">{new Date(sale.itemId.dateAdded).toLocaleDateString()}</td>
+                      <td className="p-2 border">{sale.itemId.name}</td>
+                      <td className="p-2 border">{sale.itemId.points}</td>
+                      <td className="p-2 border">{sale.unitPrice.toFixed(2)}</td>
+                      <td className="p-2 border">1</td>
+                      <td className="p-2 border">{sale.totalPoints}</td>
+                      <td className="p-2 border">{sale.totalPrice.toFixed(2)}</td>
+                      <td className="p-2 border">{new Date(sale.dateSold).toLocaleDateString()}</td>
+                      <td className="p-2 border">{sale.unitsSold}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
