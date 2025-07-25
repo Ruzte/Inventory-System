@@ -11,6 +11,7 @@ function Login() {
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleLogin = async () => {
     setError(""); // Clear previous error
@@ -29,8 +30,19 @@ function Login() {
 
       if (res.ok) {
         localStorage.setItem("loggedIn", "true");
-        localStorage.setItem("username", username);
-        navigate("/dashboard");
+        // Store user object instead of just username string
+        localStorage.setItem("user", JSON.stringify({ 
+          username: username,
+          password: password,
+        }));
+        
+        // Start the zoom transition
+        setIsTransitioning(true);
+        
+        // Navigate after the zoom effect completes
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000); // 1 second for the zoom effect
       } else {
         // Handle both 'error' and 'message' properties from backend
         setError(data.error || data.message || "Login failed.");
@@ -85,7 +97,16 @@ function Login() {
   }, []);
 
   return (
-    <div className="h-screen w-screen flex m-0 p-0 overflow-hidden fixed inset-0">
+    <div 
+      className={`h-screen w-screen flex m-0 p-0 overflow-hidden fixed inset-0 transition-all duration-1000 ease-in-out transform-gpu ${
+        isTransitioning 
+          ? 'scale-150 opacity-0' 
+          : 'scale-100 opacity-100'
+      }`}
+      style={{
+        transformOrigin: 'center center'
+      }}
+    >
       {/* Center teal section with login form */}
       <div className="flex-1 bg-gradient-to-t from-[#89ae29] to-[#2e5f52] flex items-center justify-center">
         <div className="bg-[#FEF5E3] p-8 rounded-lg shadow-md w-full max-w-4xl mx-auto flex gap-8">
@@ -96,7 +117,7 @@ function Login() {
               <img 
                 src={logo}
                 alt="Logo"
-                className="w-44 h-44 my-8 rounded-full shadow-md mx-auto object-cover"
+                className="w-44 h-44 my-8 rounded-full shadow-md mx-auto object-cover hover:-rotate-[360deg] transition-transform duration-500"
               />
             </div>
             <div className="pt-4 text-sm text-[#2e5f52] space-y-2">
@@ -128,6 +149,7 @@ function Login() {
                 className="text-xs w-full mb-3 p-3 rounded bg-[#F9F3D9] shadow-sm border-none outline-none"
                 value={newUsername}
                 onChange={(e) => setNewUsername(e.target.value)}
+                disabled={isTransitioning}
               />
               <input
                 type="password"
@@ -135,6 +157,7 @@ function Login() {
                 className="text-xs w-full mb-3 p-3 rounded bg-[#F9F3D9] shadow-sm border-none outline-none"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                disabled={isTransitioning}
               />
               <input
                 type="password"
@@ -142,10 +165,12 @@ function Login() {
                 className="text-xs w-full mb-4 p-3 rounded bg-[#F9F3D9] shadow-sm border-none outline-none"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isTransitioning}
               />
               <button
                 onClick={handleSignup}
-                className="text-base w-full bg-[#2e5f52] text-white py-3 rounded shadow hover:bg-opacity-90 transition font-medium"
+                disabled={isTransitioning}
+                className="text-base w-full bg-[#2e5f52] hover:bg-[#89ae29] text-white py-3 rounded shadow hover:bg-opacity-90 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 SIGN UP
               </button>
@@ -158,6 +183,7 @@ function Login() {
               className="text-xs w-full mb-4 p-3 rounded bg-[#F9F3D9] shadow-sm border-none outline-none"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              disabled={isTransitioning}
             />
             <input
               type="password"
@@ -165,13 +191,19 @@ function Login() {
               className="text-xs w-full mb-4 p-3 rounded bg-[#F9F3D9] shadow-sm border-none outline-none"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isTransitioning}
             />
             {error && <p className="text-red-500 text-xs mb-4">{error}</p>}
             <button
               onClick={handleLogin}
-              className="text-base w-full bg-[#89ae29] text-white py-3 rounded shadow hover:bg-opacity-90 transition font-medium"
+              disabled={isTransitioning}
+              className={`text-base w-full text-white py-3 rounded shadow transition-all duration-300 font-medium ${
+                isTransitioning 
+                  ? 'bg-[#89ae29] scale-105 cursor-not-allowed opacity-75' 
+                  : 'bg-[#2e5f52] hover:bg-[#89ae29] hover:bg-opacity-90'
+              }`}
             >
-              LOGIN
+              {isTransitioning ? 'LOGGING IN...' : 'LOGIN'}
             </button>
           </div>
         </div>

@@ -172,9 +172,9 @@ function Dashboard() {
 
   return (
     <div>
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-6 ">
         {/* Products Section */}
-        <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-96 flex flex-col">
+        <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-[60vh] flex flex-col">
           <div className="flex justify-between items-center mb-4 flex-shrink-0">
             <h2 className="text-xl font-bold text-[#2e5f52] ">PRODUCTS</h2>
             <div className="flex items-center gap-3">
@@ -205,7 +205,7 @@ function Dashboard() {
               </button>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
+          <div className="flex-1 overflow-x-auto min-h-0 custom-scrollbar">
             <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
               <thead className="sticky top-0 bg-[#dbe6a6] text-center z-10">
                 <tr>
@@ -213,7 +213,7 @@ function Dashboard() {
                   <th className="p-2 border">Product</th>
                   <th className="p-2 border w-24">Points</th>
                   <th className="p-2 border w-24">Price</th>
-                  <th className="p-2 border w-24">Unit</th>
+                  <th className="p-2 border w-24">Units</th>
                   <th className="p-2 border w-24">Total Points</th>
                   <th className="p-2 border w-24">Total Price</th>
                   <th className="p-2 border w-20">Action</th>

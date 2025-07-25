@@ -13,15 +13,24 @@ function Topbar() {
 
   // Load username from localStorage
   useEffect(() => {
-  const storedUser = JSON.parse(localStorage.getItem('user'));
+    const storedUser = JSON.parse(localStorage.getItem('user'));
     if (storedUser && storedUser.username) {
       setUsername(storedUser.username);
     }
   }, []);
 
+  // Function to update username in both state and localStorage
+  const updateUsername = (newUsername) => {
+    setUsername(newUsername);
+    const storedUser = JSON.parse(localStorage.getItem('user')) || {};
+    storedUser.username = newUsername;
+    localStorage.setItem('user', JSON.stringify(storedUser));
+  };
+
   // 🔓 Logout logic from your Profile page
   const handleLogout = () => {
     localStorage.removeItem('loggedIn');
+    localStorage.removeItem('user'); // Also remove user data
     navigate('/');
   };
 
@@ -48,7 +57,7 @@ function Topbar() {
           <img
             src={logo}
             alt="Logo"
-            className="w-8 h-8 object-cover rounded-full shadow cursor-pointer hover:scale-105 transition-transform duration-200 "
+            className="w-8 h-8 object-cover rounded-full shadow cursor-pointer hover:scale-105 hover:-rotate-[360deg] transition-transform duration-500  "
           />
         </Link>
         <span className="text-xl font-bold">{username || "USERNAME"}</span>
@@ -77,7 +86,7 @@ function Topbar() {
             <img 
               src={Profile} 
               alt="Logo" 
-              className="w-8 h-8 object-contain rounded-full shadow-md hover:scale-105 transition-transform duration-200"
+              className="w-8 h-8 object-contain rounded-full shadow-md hover:scale-105 hover:-rotate-[360deg] transition-transform duration-500"
             />
           </button>
 
@@ -112,6 +121,8 @@ function Topbar() {
           <ProfileModal
             isOpen={showProfileModal}
             onClose={() => setShowProfileModal(false)}
+            currentUsername={username}
+            onUsernameUpdate={updateUsername}
           />
         </div>
       </div>

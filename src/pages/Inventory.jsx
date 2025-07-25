@@ -1,20 +1,8 @@
-  import { useCurrency } from "../context/Currency";
+
   import { useEffect, useState } from "react";
 
   function Dashboard() {
-    const { currency } = useCurrency();
-    const getCurrencySymbol = () => {
-      switch (currency) {
-        case "USD":
-          return "$";
-        case "PHP":
-          return "₱";
-        case "AED":
-          return "د.إ";
-        default:
-          return "$";
-      }
-    };
+   
 
     const [quantity, setQuantity] = useState(0);
     const [points, setPoints] = useState(1);
@@ -76,7 +64,7 @@
       <div>
         <div className="grid grid-cols-3 gap-6">
           {/* Inventory Section */}
-          <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-[35rem] flex flex-col">
+          <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-[81vh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-[#2e5f52] ">INVENTORY</h2>
             </div>
@@ -84,23 +72,23 @@
               <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
                 <thead className="sticky top-0 bg-[#dbe6a6] text-center">
                   <tr>
-                    <th className="p-2 border ">Date Added</th>
-                    <th className="p-2 border">Product</th>
-                    <th className="p-2 border ">Unit Amount</th>
+                    <th className="p-2 border  ">Date Added</th>
+                    <th className="p-2 border ">Product</th>
                     <th className="p-2 border ">Points</th>
-                    <th className="p-2 border ">Unit Price</th>
+                    <th className="p-2 border ">Price</th>
+                    <th className="p-2 border ">Units</th>
                     <th className="p-2 border ">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((item, index) => (
                     <tr key={index}>
-                      <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
-                      <td className="p-2 border">{item.name}</td>
-                      <td className="p-2 border">{item.points}</td>
-                      <td className="p-2 border">{item.unitPrice}</td>
-                      <td className="p-2 border">{item.unitAmount}</td>
-                      <td className="p-2 border">{item.status}</td>
+                      <td className="p-2 border text-center">{new Date(item.dateAdded).toLocaleString()}</td>
+                      <td className="p-2 border text-center">{item.name}</td>
+                      <td className="p-2 border text-center">{item.points}</td>
+                      <td className="p-2 border text-center">{item.unitPrice}</td>
+                      <td className="p-2 border text-center">{item.unitAmount}</td>
+                      <td className="p-2 border text-center">{item.status}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -168,7 +156,6 @@
             <div className="w-1/2">
               <label className="text-sm text-[#2F5D55] mb-1 block">Unit Price</label>
               <div className="flex items-center gap-2">
-                <span className="text-[#2F5D55]">{getCurrencySymbol()}</span>
                 <input
                   type="number"
                   value={unitPrice}

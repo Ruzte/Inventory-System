@@ -56,8 +56,8 @@ function History() {
   return (
     <div>
       <div className="grid grid-cols-3 gap-6">
-        {/* Inventory Section */}
-        <div className="col-span-3 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-[35rem] flex flex-col">
+        {/* History Section */}
+        <div className="col-span-3 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-[81vh] flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-[#2e5f52] ">TRANSACTION HISTORY</h2>
             
