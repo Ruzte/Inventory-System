@@ -1,8 +1,12 @@
 import express from "express";
 import Item from "../models/Item.js";
 import Sale from "../models/sale.js";
+import { getUserFromRequest } from "../middleware/auth.js";
 
 const router = express.Router();
+
+// Apply auth middleware to all routes
+router.use(getUserFromRequest);
 
 // POST /api/items - Add a new item
 router.post("/", async (req, res) => {
@@ -10,6 +14,7 @@ router.post("/", async (req, res) => {
     const { name, unitAmount, points, unitPrice } = req.body;
 
     const newItem = new Item({
+      userId: req.user._id, // Associate with current user
       name,
       unitAmount,
       points,
@@ -25,10 +30,10 @@ router.post("/", async (req, res) => {
   }
 });
 
-// GET /api/items - Get all items
+// GET /api/items - Get all items for current user
 router.get("/", async (req, res) => {
   try {
-    const items = await Item.find().sort({ dateAdded: -1 });
+    const items = await Item.find({ userId: req.user._id }).sort({ dateAdded: -1 });
     res.json(items);
   } catch (error) {
     console.error("Fetch items error:", error);
@@ -36,10 +41,19 @@ router.get("/", async (req, res) => {
   }
 });
 
-// PUT /api/items/:id - Update item
+// PUT /api/items/:id - Update item (only if user owns it)
 router.put("/:id", async (req, res) => {
   try {
-    const updatedItem = await Item.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedItem = await Item.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id },
+      req.body, 
+      { new: true }
+    );
+    
+    if (!updatedItem) {
+      return res.status(404).json({ message: "Item not found or not authorized" });
+    }
+    
     res.json(updatedItem);
   } catch (err) {
     console.error("Update item error:", err);
@@ -47,14 +61,14 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// PATCH /api/items/:id/add-units - Add units to item
+// PATCH /api/items/:id/add-units - Add units to item (only if user owns it)
 router.patch("/:id/add-units", async (req, res) => {
   const { id } = req.params;
   const { addQuantity } = req.body;
 
   try {
-    const item = await Item.findById(id);
-    if (!item) return res.status(404).json({ message: "Item not found" });
+    const item = await Item.findOne({ _id: id, userId: req.user._id });
+    if (!item) return res.status(404).json({ message: "Item not found or not authorized" });
 
     item.unitAmount += parseInt(addQuantity);
     await item.save();
@@ -66,13 +80,13 @@ router.patch("/:id/add-units", async (req, res) => {
   }
 });
 
-// POST /api/items/sale - Make a sale
+// POST /api/items/sale - Make a sale (only if user owns the item)
 router.post("/sale", async (req, res) => {
   try {
     const { itemId, unitsSold } = req.body;
 
-    const item = await Item.findById(itemId);
-    if (!item) return res.status(404).json({ error: "Item not found" });
+    const item = await Item.findOne({ _id: itemId, userId: req.user._id });
+    if (!item) return res.status(404).json({ error: "Item not found or not authorized" });
 
     if (item.unitAmount < unitsSold) {
       return res.status(400).json({ error: "Not enough units in stock" });
@@ -84,6 +98,7 @@ router.post("/sale", async (req, res) => {
     const totalValue = unitsSold * item.unitPrice;
 
     const newSale = new Sale({
+      userId: req.user._id, // Associate sale with user
       itemId: item._id,
       unitsSold,
       unitPrice: item.unitPrice,
@@ -98,10 +113,11 @@ router.post("/sale", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-// GET /api/items/sales - Get all sales with item details
+
+// GET /api/items/sales - Get all sales for current user with item details
 router.get("/sales", async (req, res) => {
   try {
-    const sales = await Sale.find().populate("itemId");
+    const sales = await Sale.find({ userId: req.user._id }).populate("itemId");
     res.json(sales);
   } catch (error) {
     console.error("Error fetching sales:", error);
@@ -109,11 +125,13 @@ router.get("/sales", async (req, res) => {
   }
 });
 
-
-// GET /api/items/sales-total - Get total sales revenue
+// GET /api/items/sales-total - Get total sales revenue for current user
 router.get("/sales-total", async (req, res) => {
   try {
     const totalSales = await Sale.aggregate([
+      {
+        $match: { userId: req.user._id } // Filter by current user
+      },
       {
         $group: {
           _id: null,

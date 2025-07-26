@@ -78,13 +78,59 @@ function Dashboard() {
   const [salesRefreshTrigger, setSalesRefreshTrigger] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Function to get username from localStorage
+  const getUsername = () => {
+    try {
+      const user = localStorage.getItem('user');
+      if (user) {
+        const userData = JSON.parse(user);
+        return userData.username;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting username:', error);
+      return null;
+    }
+  };
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const username = getUsername();
+    if (!username) {
+      alert('Please log in first');
+      navigate('/login');
+    }
+  }, [navigate]);
+
   const fetchItems = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/items");
+      const username = getUsername();
+      if (!username) {
+        alert('Please log in first');
+        navigate('/login');
+        return;
+      }
+      
+      const res = await fetch("http://localhost:5000/api/items", {
+        headers: {
+          'x-username': username
+        }
+      });
+      
+      if (!res.ok) {
+        if (res.status === 401) {
+          alert('Session expired. Please log in again.');
+          navigate('/login');
+          return;
+        }
+        throw new Error('Failed to fetch items');
+      }
+      
       const data = await res.json();
       setItems(data);
     } catch (err) {
       console.error("Failed to fetch items:", err);
+      alert("Failed to fetch items. Please try again.");
     }
   };
 
@@ -121,11 +167,22 @@ function Dashboard() {
     }
 
     try {
+      const username = getUsername();
+      if (!username) {
+        alert('Please log in first');
+        navigate('/login');
+        return;
+      }
+      
       const res = await fetch("http://localhost:5000/api/items/sale", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'x-username': username
+        },
         body: JSON.stringify({ itemId: selectedItem._id, unitsSold: saleUnits }),
       });
+      
       const data = await res.json();
 
       if (res.ok) {
@@ -136,6 +193,11 @@ function Dashboard() {
         setSelectedItem(null);
         setSaleUnits(1);
       } else {
+        if (res.status === 401) {
+          alert('Session expired. Please log in again.');
+          navigate('/login');
+          return;
+        }
         alert(data.error || "Failed to process sale.");
       }
     } catch (err) {
@@ -146,9 +208,19 @@ function Dashboard() {
 
   const handleAddUnitsConfirm = async () => {
     try {
+      const username = getUsername();
+      if (!username) {
+        alert('Please log in first');
+        navigate('/login');
+        return;
+      }
+      
       const res = await fetch(`http://localhost:5000/api/items/${selectedItem._id}/add-units`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'x-username': username
+        },
         body: JSON.stringify({ addQuantity }),
       });
 
@@ -158,6 +230,11 @@ function Dashboard() {
         alert("Units added successfully!");
         fetchItems(); 
       } else {
+        if (res.status === 401) {
+          alert('Session expired. Please log in again.');
+          navigate('/login');
+          return;
+        }
         alert(data.message || "Failed to add units.");
       }
     } catch (err) {
@@ -173,9 +250,19 @@ function Dashboard() {
     if (!selectedItem) return;
 
     try {
+      const username = getUsername();
+      if (!username) {
+        alert('Please log in first');
+        navigate('/login');
+        return;
+      }
+      
       const res = await fetch(`http://localhost:5000/api/items/${selectedItem._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'x-username': username
+        },
         body: JSON.stringify({ ...selectedItem, status: "Deleted" }),
       });
 
@@ -184,6 +271,11 @@ function Dashboard() {
         setShowDeleteModal(false);
         setSelectedItem(null);
       } else {
+        if (res.status === 401) {
+          alert('Session expired. Please log in again.');
+          navigate('/login');
+          return;
+        }
         alert("Failed to delete item.");
       }
     } catch (err) {
@@ -349,7 +441,5 @@ function Dashboard() {
     </div>
   );
 }
-
-
 
 export default Dashboard;

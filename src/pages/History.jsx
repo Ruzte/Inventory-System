@@ -1,20 +1,60 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from 'react-router-dom';
 import '../scrollbar.css';
 
 function History() {
+  const navigate = useNavigate();
   const [sales, setSales] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Function to get username from localStorage
+  const getUsername = () => {
+    try {
+      const user = localStorage.getItem('user');
+      if (user) {
+        const userData = JSON.parse(user);
+        return userData.username;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting username:', error);
+      return null;
+    }
+  };
+
+  // Check authentication on component mount
   useEffect(() => {
-    axios.get("http://localhost:5000/api/items/sales")
+    const username = getUsername();
+    if (!username) {
+      alert('Please log in first');
+      navigate('/login');
+      return;
+    }
+
+    // Fetch sales data
+    axios.get("http://localhost:5000/api/items/sales", {
+      headers: {
+        'x-username': username
+      }
+    })
       .then(res => {
         // Group and aggregate the sales data
         const groupedSales = groupSalesByProductAndDate(res.data);
         setSales(groupedSales);
       })
-      .catch(err => console.error("Failed to fetch sales:", err));
-  }, []);
+      .catch(err => {
+        console.error("Failed to fetch sales:", err);
+        
+        // Handle authentication errors
+        if (err.response?.status === 401) {
+          alert('Session expired. Please log in again.');
+          navigate('/login');
+        } else {
+          alert("Failed to fetch transaction history. Please try again.");
+        }
+      });
+  }, [navigate]);
 
   const groupSalesByProductAndDate = (salesData) => {
     const grouped = {};
