@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import History from './pages/History';
 import Topbar from './components/Topbar';
+import { Toaster } from 'react-hot-toast';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -64,6 +65,7 @@ function App() {
           {/* Catch-all route */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        <Toaster />
       </Layout>
     </Router>
   );

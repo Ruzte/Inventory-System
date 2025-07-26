@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
-function Dashboard() {
+function Inventory() {
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(0);
   const [points, setPoints] = useState(1);
@@ -28,6 +29,26 @@ function Dashboard() {
       return null;
     }
   };
+
+  // ADD THIS FUNCTION after getUsername function
+const resetFocus = () => {
+  setTimeout(() => {
+    // Remove focus from any active element
+    if (document.activeElement && document.activeElement !== document.body) {
+      document.activeElement.blur();
+    }
+    // Reset focus state
+    document.body.focus();
+    document.body.blur();
+    
+    // Force all inputs to be focusable
+    document.querySelectorAll('input, textarea').forEach(input => {
+      input.removeAttribute('readonly');
+      input.removeAttribute('disabled');
+      input.style.pointerEvents = 'auto';
+    });
+  }, 100);
+};
 
   // Check authentication on component mount
   useEffect(() => {
@@ -66,7 +87,7 @@ function Dashboard() {
 
       const data = await res.json();
       if (res.ok) {
-        alert("Item added successfully!");
+        toast.success("Item added successfully!");
         
         // Add the new item to the existing items array
         const itemWithDate = {
@@ -81,6 +102,8 @@ function Dashboard() {
         setQuantity(0);
         setPoints(1);
         setUnitPrice("");
+
+         resetFocus();
       } else {
         if (res.status === 401) {
           alert('Session expired. Please log in again.');
@@ -156,13 +179,13 @@ function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((item, index) => (
-                  <tr key={index}>
+                {items.map((item) => (
+                  <tr key={item._id}>
                     <td className="p-2 border text-center">{new Date(item.dateAdded).toLocaleString()}</td>
                     <td className="p-2 border text-center">{item.name}</td>
-                    <td className="p-2 border text-center">{item.points}</td>
-                    <td className="p-2 border text-center">{item.unitPrice}</td>
-                    <td className="p-2 border text-center">{item.unitAmount}</td>
+                    <td className="p-2 border text-center">{Number(item.points).toLocaleString()}</td>
+                    <td className="p-2 border text-center">{Number(item.unitPrice).toLocaleString()}</td>
+                    <td className="p-2 border text-center">{Number(item.unitAmount).toLocaleString()}</td>
                     <td className="p-2 border text-center">
                       {item.status === "Deleted" ? (
                         <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold">
@@ -248,11 +271,15 @@ function Dashboard() {
           {/* Unit Price */}
           <label className="text-sm text-[#2F5D55] mb-1">Unit Price</label>
           <input
-            type="number"
-            value={unitPrice}
-            onChange={(e) => setUnitPrice(e.target.value)}
+            type="text"
+            value={unitPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+            onChange={(e) => {
+              // Remove commas before saving to state
+              const rawValue = e.target.value.replace(/,/g, "");
+              if (!isNaN(rawValue)) setUnitPrice(rawValue);
+            }}
             placeholder="0.00"
-            className="w-full mb-4 p-2 rounded bg-[#f9f3d9] shadow-sm text-gray-700"
+            className="w-full mb-4 p-2 text-center rounded bg-[#f9f3d9] shadow-sm text-gray-700"
           />
 
           {/* Buttons */}
@@ -273,4 +300,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default Inventory;

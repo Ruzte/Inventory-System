@@ -64,7 +64,7 @@ const TotalSales = ({ salesRefreshTrigger }) => {
   return (
     <div className=" p-4 rounded ">
       <p className="text-2xl font-bold">
-        💵{totalSalesRevenue.toFixed(2)}
+        💵{Number(totalSalesRevenue.toFixed(2)).toLocaleString()}
       </p>
     </div>
   );

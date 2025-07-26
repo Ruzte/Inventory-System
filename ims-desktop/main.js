@@ -8,7 +8,7 @@ function createWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      webSecurity: false, // Allow fetch to localhost
+      webSecurity: true, // Allow fetch to localhost
     },
   });
 

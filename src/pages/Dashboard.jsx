@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from "react";
+import { toast } from 'react-hot-toast';
 import Statistics from '../components/statistics';
 import TotalSales from '../components/totalSales'; 
 import Calendar from '../components/calendar'; 
@@ -77,6 +78,26 @@ function Dashboard() {
   const [addQuantity, setAddQuantity] = useState(1);
   const [salesRefreshTrigger, setSalesRefreshTrigger] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // ADD THIS FUNCTION - Quick Fix for Focus Issues
+  const resetFocus = () => {
+    setTimeout(() => {
+      // Remove focus from any active element
+      if (document.activeElement && document.activeElement !== document.body) {
+        document.activeElement.blur();
+      }
+      // Reset focus state
+      document.body.focus();
+      document.body.blur();
+      
+      // Force all inputs to be focusable
+      document.querySelectorAll('input, textarea').forEach(input => {
+        input.style.pointerEvents = 'auto';
+        input.removeAttribute('readonly');
+        input.removeAttribute('disabled');
+      });
+    }, 100);
+  };
 
   // Function to get username from localStorage
   const getUsername = () => {
@@ -162,7 +183,7 @@ function Dashboard() {
 
   const handleSaleConfirm = async () => {
     if (!selectedItem || saleUnits <= 0 || saleUnits > selectedItem.unitAmount) {
-      alert("Invalid sale amount.");
+      toast.error("No stock available");
       return;
     }
 
@@ -186,12 +207,13 @@ function Dashboard() {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Sale recorded successfully!");
+        toast.success("Sale recorded successfully!");
         fetchItems();
         setSalesRefreshTrigger(prev => prev + 1);
         setShowSaleModal(false);
         setSelectedItem(null);
         setSaleUnits(1);
+        resetFocus(); // ADD THIS LINE - Quick Fix Applied
       } else {
         if (res.status === 401) {
           alert('Session expired. Please log in again.');
@@ -227,8 +249,11 @@ function Dashboard() {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Units added successfully!");
+        toast.success("Units added successfully!");
         fetchItems(); 
+        setShowAddModal(false);
+        setAddQuantity(1);
+        resetFocus(); // ADD THIS LINE - Quick Fix Applied
       } else {
         if (res.status === 401) {
           alert('Session expired. Please log in again.');
@@ -241,9 +266,6 @@ function Dashboard() {
       console.error("Add units error:", err);
       alert("Error adding units.");
     }
-
-    setShowAddModal(false);
-    setAddQuantity(1);
   };
 
   const handleDeleteConfirm = async () => {
@@ -270,6 +292,7 @@ function Dashboard() {
         fetchItems(); 
         setShowDeleteModal(false);
         setSelectedItem(null);
+        resetFocus(); // ADD THIS LINE - Quick Fix Applied
       } else {
         if (res.status === 401) {
           alert('Session expired. Please log in again.');
@@ -345,11 +368,11 @@ function Dashboard() {
                       <td className="p-2 border text-center">
                         {isHighlighted ? <span className="font-semibold text-[#89AE29]">{item.name}</span> : item.name}
                       </td>
-                      <td className="p-2 border text-center">{item.points}</td>
-                      <td className="p-2 border text-center">{item.unitPrice}</td>
-                      <td className="p-2 border text-center">{item.unitAmount}</td>
-                      <td className="p-2 border text-center">{totalPoints}</td>
-                      <td className="p-2 border text-center">{totalPrice}</td>
+                      <td className="p-2 border text-center">{Number(item.points).toLocaleString()}</td>
+                      <td className="p-2 border text-center">{Number(item.unitPrice).toLocaleString()}</td>
+                      <td className="p-2 border text-center">{Number(item.unitAmount).toLocaleString()}</td>
+                      <td className="p-2 border text-center">{Number(totalPoints).toLocaleString()}</td>
+                      <td className="p-2 border text-center">{Number(totalPrice).toLocaleString()}</td>
                       <td className="p-2 border text-center">
                         <ActionDropdown item={item} onSelect={handleActionChange} />
                       </td>
@@ -380,7 +403,7 @@ function Dashboard() {
         {showSaleModal && selectedItem && (
           <Modal
             title={`Sell Units for ${selectedItem.name}`}
-            onCancel={() => { setShowSaleModal(false); setSelectedItem(null); }}
+            onCancel={() => { setShowSaleModal(false); setSelectedItem(null); resetFocus(); }}
             onConfirm={handleSaleConfirm}
             confirmText="Confirm"
           >
@@ -398,7 +421,7 @@ function Dashboard() {
         {showAddModal && selectedItem && (
           <Modal
             title={`Add Units to ${selectedItem.name}`}
-            onCancel={() => { setShowAddModal(false); setAddQuantity(1); }}
+            onCancel={() => { setShowAddModal(false); setAddQuantity(1); resetFocus(); }}
             onConfirm={handleAddUnitsConfirm}
             confirmText="Confirm"
           >
@@ -415,7 +438,7 @@ function Dashboard() {
         {showDeleteModal && selectedItem && (
           <Modal
             title={`Delete ${selectedItem.name}?`}
-            onCancel={() => setShowDeleteModal(false)}
+            onCancel={() => { setShowDeleteModal(false); resetFocus(); }}
             onConfirm={handleDeleteConfirm}
             confirmText="Confirm Delete"
             danger

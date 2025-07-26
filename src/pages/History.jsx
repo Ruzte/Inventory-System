@@ -23,6 +23,54 @@ function History() {
     }
   };
 
+  // ADD THIS FUNCTION after getUsername function
+const resetFocus = () => {
+  setTimeout(() => {
+    if (document.activeElement && document.activeElement !== document.body) {
+      document.activeElement.blur();
+    }
+    document.body.focus();
+    document.body.blur();
+    
+    document.querySelectorAll('input, textarea').forEach(input => {
+      input.removeAttribute('readonly');
+      input.removeAttribute('disabled');
+      input.style.pointerEvents = 'auto';
+    });
+  }, 100);
+};
+
+// And call it in your useEffect after fetching data:
+useEffect(() => {
+  const username = getUsername();
+  if (!username) {
+    alert('Please log in first');
+    navigate('/login');
+    return;
+  }
+
+  axios.get("http://localhost:5000/api/items/sales", {
+    headers: {
+      'x-username': username
+    }
+  })
+    .then(res => {
+      const groupedSales = groupSalesByProductAndDate(res.data);
+      setSales(groupedSales);
+      resetFocus(); // ADD THIS LINE
+    })
+    .catch(err => {
+      console.error("Failed to fetch sales:", err);
+      
+      if (err.response?.status === 401) {
+        alert('Session expired. Please log in again.');
+        navigate('/login');
+      } else {
+        alert("Failed to fetch transaction history. Please try again.");
+      }
+    });
+}, [navigate]);
+
   // Check authentication on component mount
   useEffect(() => {
     const username = getUsername();
@@ -148,13 +196,13 @@ function History() {
                     <tr key={index}>
                       <td className="p-2 border">{new Date(sale.itemId.dateAdded).toLocaleDateString()}</td>
                       <td className="p-2 border">{sale.itemId.name}</td>
-                      <td className="p-2 border">{sale.itemId.points}</td>
-                      <td className="p-2 border">{sale.unitPrice.toFixed(2)}</td>
+                      <td className="p-2 border">{Number(sale.itemId.points).toLocaleString()}</td>
+                      <td className="p-2 border">{Number(sale.unitPrice.toFixed(2)).toLocaleString()}</td>
                       <td className="p-2 border">1</td>
-                      <td className="p-2 border">{sale.totalPoints}</td>
-                      <td className="p-2 border">{sale.totalPrice.toFixed(2)}</td>
+                      <td className="p-2 border">{Number(sale.totalPoints).toLocaleString()}</td>
+                      <td className="p-2 border">{Number(sale.totalPrice.toFixed(2)).toLocaleString()}</td>
                       <td className="p-2 border">{new Date(sale.dateSold).toLocaleDateString()}</td>
-                      <td className="p-2 border">{sale.unitsSold}</td>
+                      <td className="p-2 border">{Number(sale.unitsSold).toLocaleString()}</td>
                     </tr>
                   ))
                 )}
