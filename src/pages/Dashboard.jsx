@@ -310,157 +310,158 @@ function Dashboard() {
   return (
     <div>
       <div className="grid grid-cols-3 gap-6">
-        {/* Products */}
-        <div className="col-span-2 bg-[#FEF5E3] p-4 rounded-lg shadow-md h-[60vh] flex flex-col">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-[#2e5f52]">PRODUCTS</h2>
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#89AE29] bg-white text-[#2F5D55] w-48"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm("")}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    ✕
-                  </button>
-                )}
+        {/* Left Side: Products + Statistics (stacked) - Takes up 2/3 of the width */}
+        <div className="col-span-2 flex flex-col gap-6">
+          {/* Products Section */}
+          <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md h-[60vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-[#2e5f52]">PRODUCTS</h2>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#89AE29] bg-white text-[#2F5D55] w-48"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="border px-3 py-1 rounded-md text-sm text-[#FEF5E3] bg-[#89AE29] hover:bg-[#2e5f52]"
+                  onClick={() => navigate('/history')}
+                >
+                  Transaction History
+                </button>
               </div>
-              <button
-                type="button"
-                className="border px-3 py-1 rounded-md text-sm text-[#FEF5E3] bg-[#89AE29] hover:bg-[#2e5f52]"
-                onClick={() => navigate('/history')}
-              >
-                Transaction History
-              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
+              <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
+                <thead className="sticky top-0 bg-[#dbe6a6] text-center z-10">
+                  <tr>
+                    <th className="p-2 border w-24">Date Added</th>
+                    <th className="p-2 border">Product</th>
+                    <th className="p-2 border w-24">Points</th>
+                    <th className="p-2 border w-24">Price</th>
+                    <th className="p-2 border w-24">Units</th>
+                    <th className="p-2 border w-24">Total Points</th>
+                    <th className="p-2 border w-24">Total Price</th>
+                    <th className="p-2 border w-24">Action</th>
+                    <th className="p-2 border w-24">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {getFilteredItems().map((item) => {
+                    const totalPoints = item.unitAmount * item.points;
+                    const totalPrice = item.unitAmount * item.unitPrice;
+                    const isHighlighted = searchTerm.trim() && item.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+                    return (
+                      <tr key={item._id} className={isHighlighted ? "bg-yellow-50" : ""}>
+                        <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
+                        <td className="p-2 border text-center">
+                          {isHighlighted ? <span className="font-semibold text-[#89AE29]">{item.name}</span> : item.name}
+                        </td>
+                        <td className="p-2 border text-center">{Number(item.points).toLocaleString()}</td>
+                        <td className="p-2 border text-center">{Number(item.unitPrice).toLocaleString()}</td>
+                        <td className="p-2 border text-center">{Number(item.unitAmount).toLocaleString()}</td>
+                        <td className="p-2 border text-center">{Number(totalPoints).toLocaleString()}</td>
+                        <td className="p-2 border text-center">{Number(totalPrice).toLocaleString()}</td>
+                        <td className="p-2 border text-center">
+                          <ActionDropdown item={item} onSelect={handleActionChange} />
+                        </td>
+                        <td className="p-2 border text-center">
+                          {item.status === "Deleted" ? (
+                            <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold">
+                              Deleted
+                            </span>
+                          ) : item.unitAmount === 0 ? (
+                            <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold">
+                              No Stock
+                            </span>
+                          ) : (
+                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold">
+                              Available
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
-          <div className="flex-1 overflow-x-auto min-h-0 custom-scrollbar">
-            <table className="w-full text-xs font-normal text-[#2F5D55] font-inter border border-gray-300">
-              <thead className="sticky top-0 bg-[#dbe6a6] text-center z-10">
-                <tr>
-                  <th className="p-2 border w-24">Date Added</th>
-                  <th className="p-2 border">Product</th>
-                  <th className="p-2 border w-24">Points</th>
-                  <th className="p-2 border w-24">Price</th>
-                  <th className="p-2 border w-24">Units</th>
-                  <th className="p-2 border w-24">Total Points</th>
-                  <th className="p-2 border w-24">Total Price</th>
-                  <th className="p-2 border w-24">Action</th>
-                  <th className="p-2 border w-24">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {getFilteredItems().map((item) => {
-                  const totalPoints = item.unitAmount * item.points;
-                  const totalPrice = item.unitAmount * item.unitPrice;
-                  const isHighlighted = searchTerm.trim() && item.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-                  return (
-                    <tr key={item._id} className={isHighlighted ? "bg-yellow-50" : ""}>
-                      <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
-                      <td className="p-2 border text-center">
-                        {isHighlighted ? <span className="font-semibold text-[#89AE29]">{item.name}</span> : item.name}
-                      </td>
-                      <td className="p-2 border text-center">{Number(item.points).toLocaleString()}</td>
-                      <td className="p-2 border text-center">{Number(item.unitPrice).toLocaleString()}</td>
-                      <td className="p-2 border text-center">{Number(item.unitAmount).toLocaleString()}</td>
-                      <td className="p-2 border text-center">{Number(totalPoints).toLocaleString()}</td>
-                      <td className="p-2 border text-center">{Number(totalPrice).toLocaleString()}</td>
-                      <td className="p-2 border text-center">
-                        <ActionDropdown item={item} onSelect={handleActionChange} />
-                      </td>
-                      <td className="p-2 border text-center">
-                        {item.status === "Deleted" ? (
-                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold">
-                            Deleted
-                          </span>
-                        ) : item.unitAmount === 0 ? (
-                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold">
-                            No Stock
-                          </span>
-                        ) : (
-                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold">
-                            Available
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          {/* Statistics Section - Below products */}
+          <div className="rounded-lg shadow-md h-[140px] overflow-hidden">
+            <Statistics items={items} salesRefreshTrigger={salesRefreshTrigger} />
           </div>
         </div>
 
-        {/* Modals */}
-        {showSaleModal && selectedItem && (
-          <Modal
-            title={`Sell Units for ${selectedItem.name}`}
-            onCancel={() => { setShowSaleModal(false); setSelectedItem(null); resetFocus(); }}
-            onConfirm={handleSaleConfirm}
-            confirmText="Confirm"
-          >
-            <UnitSelector
-              value={saleUnits}
-              setValue={setSaleUnits}
-              max={selectedItem.unitAmount}
-              label="Units to Sell:"
-              price={selectedItem.unitPrice}
-              points={selectedItem.points}
-            />
-          </Modal>
-        )}
-
-        {showAddModal && selectedItem && (
-          <Modal
-            title={`Add Units to ${selectedItem.name}`}
-            onCancel={() => { setShowAddModal(false); setAddQuantity(1); resetFocus(); }}
-            onConfirm={handleAddUnitsConfirm}
-            confirmText="Confirm"
-          >
-            <UnitSelector
-              value={addQuantity}
-              setValue={setAddQuantity}
-              label="Units to Add:"
-              price={selectedItem.unitPrice}
-              points={selectedItem.points}
-            />
-          </Modal>
-        )}
-
-        {showDeleteModal && selectedItem && (
-          <Modal
-            title={`Delete ${selectedItem.name}?`}
-            onCancel={() => { setShowDeleteModal(false); resetFocus(); }}
-            onConfirm={handleDeleteConfirm}
-            confirmText="Confirm Delete"
-            danger
-          >
-            <p className="text-sm text-gray-700">
-              Are you sure you want to delete this item? This will mark the item as deleted but keep it in records.
-            </p>
-          </Modal>
-        )}
-
-        {/* Calendar & Statistics */}
-        <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between">
-          <Calendar />
-        </div>
-        <div className="col-span-2 h-full">
-          <Statistics items={items} salesRefreshTrigger={salesRefreshTrigger} />
-        </div>
-        <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md flex flex-col justify-between">
-          <h2 className="text-xl text-[#2e5f52] font-bold mb-4">TOTAL REVENUE</h2>
-          <TotalSales salesRefreshTrigger={salesRefreshTrigger} />
+        {/* Right Side: Calendar - Takes up 1/3 of the width */}
+        <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md h-[81vh] flex flex-col">
+          <Calendar salesRefreshTrigger={salesRefreshTrigger} />
         </div>
       </div>
+
+      {/* Modals */}
+      {showSaleModal && selectedItem && (
+        <Modal
+          title={`Sell Units for ${selectedItem.name}`}
+          onCancel={() => { setShowSaleModal(false); setSelectedItem(null); resetFocus(); }}
+          onConfirm={handleSaleConfirm}
+          confirmText="Confirm"
+        >
+          <UnitSelector
+            value={saleUnits}
+            setValue={setSaleUnits}
+            max={selectedItem.unitAmount}
+            label="Units to Sell:"
+            price={selectedItem.unitPrice}
+            points={selectedItem.points}
+          />
+        </Modal>
+      )}
+
+      {showAddModal && selectedItem && (
+        <Modal
+          title={`Add Units to ${selectedItem.name}`}
+          onCancel={() => { setShowAddModal(false); setAddQuantity(1); resetFocus(); }}
+          onConfirm={handleAddUnitsConfirm}
+          confirmText="Confirm"
+        >
+          <UnitSelector
+            value={addQuantity}
+            setValue={setAddQuantity}
+            label="Units to Add:"
+            price={selectedItem.unitPrice}
+            points={selectedItem.points}
+          />
+        </Modal>
+      )}
+
+      {showDeleteModal && selectedItem && (
+        <Modal
+          title={`Delete ${selectedItem.name}?`}
+          onCancel={() => { setShowDeleteModal(false); resetFocus(); }}
+          onConfirm={handleDeleteConfirm}
+          confirmText="Confirm Delete"
+          danger
+        >
+          <p className="text-sm text-gray-700">
+            Are you sure you want to delete this item? This will mark the item as deleted but keep it in records.
+          </p>
+        </Modal>
+      )}
     </div>
   );
 }

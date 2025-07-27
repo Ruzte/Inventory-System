@@ -19,27 +19,27 @@ const Statistics = ({ items }) => {
     <div className="grid grid-cols-2 md:grid-cols-6 gap-2 h-full">
       <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md  h-full flex flex-col justify-center">
         <h2 className="text-sm font-bold text-[#2e5f52] mb-4 text-center"> Total Items </h2>
-        <p className="text-xl font-bold text-center ">📦{Number(totalItems).toLocaleString()}</p>
+        <p className="text-base font-bold text-center ">📦{Number(totalItems).toLocaleString()}</p>
       </div>
       <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md h-full flex flex-col justify-center">
         <h2 className="text-sm font-bold text-[#2e5f52] mb-4 text-center"> Total Units</h2>
-        <p className="text-xl font-bold text-center">🔢{Number(totalUnits).toLocaleString()}</p>
+        <p className="text-base font-bold text-center">🔢{Number(totalUnits).toLocaleString()}</p>
       </div>
       <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md h-full flex flex-col justify-center">
         <h2 className="text-sm font-bold text-[#2e5f52] mb-4 text-center"> Total Points</h2>
-        <p className="text-xl font-bold text-center ">⭐{Number(totalPoints).toLocaleString()}</p>
+        <p className="text-base font-bold text-center ">⭐{Number(totalPoints).toLocaleString()}</p>
       </div>
       <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md h-full flex flex-col justify-center">
         <h2 className="text-sm font-bold text-[#2e5f52] mb-4 text-center "> Stock Value</h2>
-        <p className="text-xl font-bold ">💵{Number(totalRevenue.toFixed(2)).toLocaleString()}</p>
+        <p className="text-base font-bold text-center">💵{Number(totalRevenue.toFixed(2)).toLocaleString()}</p>
       </div>
       <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md h-full flex flex-col justify-center">
         <h2 className="text-sm font-bold text-[#2e5f52] mb-4 text-center"> Available Items</h2>
-        <p className="text-xl font-bold text-center">🟢{Number(availableItems).toLocaleString()}</p>
+        <p className="text-base font-bold text-center">🟢{Number(availableItems).toLocaleString()}</p>
       </div>
       <div className="bg-[#FEF5E3] p-4 rounded-lg shadow-md h-full flex flex-col justify-center ">
         <h2 className="text-sm font-bold text-[#2e5f52] mb-4 text-center"> Deleted Items</h2>
-        <p className="text-xl font-bold text-center ">🔴{Number(deletedItems).toLocaleString()}</p>
+        <p className="text-base font-bold text-center ">🔴{Number(deletedItems).toLocaleString()}</p>
       </div>
       
     </div>

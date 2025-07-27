@@ -125,12 +125,28 @@ router.get("/sales", async (req, res) => {
   }
 });
 
-// GET /api/items/sales-total - Get total sales revenue for current user
+// GET /api/items/sales-total - Get total sales revenue for current user (with optional month/year filter)
 router.get("/sales-total", async (req, res) => {
   try {
+    const { month, year } = req.query;
+    
+    // Start with base match condition for current user
+    let matchCondition = { userId: req.user._id };
+    
+    // If month and year are provided, add date filtering
+    if (month && year) {
+      const startDate = new Date(parseInt(year), parseInt(month) - 1, 1); // Start of month
+      const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59, 999); // End of month
+      
+      matchCondition.dateSold = {  // Changed from createdAt to dateSold
+        $gte: startDate,
+        $lte: endDate
+      };
+    }
+    
     const totalSales = await Sale.aggregate([
       {
-        $match: { userId: req.user._id } // Filter by current user
+        $match: matchCondition
       },
       {
         $group: {

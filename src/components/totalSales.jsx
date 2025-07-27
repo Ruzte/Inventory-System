@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from 'react-router-dom';
 
-const TotalSales = ({ salesRefreshTrigger }) => {
+const TotalSales = ({ salesRefreshTrigger, currentMonth, currentYear }) => {
   const navigate = useNavigate();
   const [totalSalesRevenue, setTotalSalesRevenue] = useState(0);
 
@@ -31,7 +31,13 @@ const TotalSales = ({ salesRefreshTrigger }) => {
         return;
       }
 
-      const res = await axios.get("http://localhost:5000/api/items/sales-total", {
+      // Build URL with month and year parameters
+      let url = "http://localhost:5000/api/items/sales-total";
+      if (currentMonth && currentYear) {
+        url += `?month=${currentMonth}&year=${currentYear}`;
+      }
+
+      const res = await axios.get(url, {
         headers: {
           'x-username': username
         }
@@ -61,8 +67,13 @@ const TotalSales = ({ salesRefreshTrigger }) => {
     }
   }, [salesRefreshTrigger]);
 
+  // Refetch when month or year changes
+  useEffect(() => {
+    fetchSalesRevenue();
+  }, [currentMonth, currentYear]);
+
   return (
-    <div className=" p-4 rounded ">
+    <div className="p-4 rounded">
       <p className="text-2xl font-bold">
         💵{Number(totalSalesRevenue.toFixed(2)).toLocaleString()}
       </p>

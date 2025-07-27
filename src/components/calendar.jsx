@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import TotalSales from './totalSales';
 
-const Calendar = () => {
+const Calendar = ({ salesRefreshTrigger }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   
   const months = [
@@ -106,10 +107,20 @@ const Calendar = () => {
       <div className="mt-3 pt-3 border-t border-[#89AE29]/20">
         <button
           onClick={() => setCurrentDate(new Date())}
-          className="w-full py-2 px-3 text-sm bg-[#89AE29] text-white rounded-md hover:bg-[#2e5f52] transition-colors"
+          className="w-full py-2 px-3 text-sm bg-[#89AE29] text-white rounded-md hover:bg-[#2e5f52] transition-colors mb-3"
         >
           Today
         </button>
+        
+        {/* Total Revenue Section */}
+        <div className="pt-3 border-t border-[#89AE29]/20">
+          <h2 className="text-lg text-[#2e5f52] font-bold mb-2">TOTAL REVENUE</h2>
+          <TotalSales 
+            salesRefreshTrigger={salesRefreshTrigger} 
+            currentMonth={currentDate.getMonth() + 1} // Convert to standard months (1-12)
+            currentYear={currentDate.getFullYear()}
+          />
+        </div>
       </div>
     </div>
   );
