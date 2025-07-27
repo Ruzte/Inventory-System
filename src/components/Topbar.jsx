@@ -7,24 +7,32 @@ import ProfileModal from "../components/ProfileModal";
 function Topbar() {
   
   const [username, setUsername] = useState('');
+  const [businessName, setBusinessName] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  // Load username from localStorage
+  // Load user data from localStorage
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (storedUser && storedUser.username) {
-      setUsername(storedUser.username);
+    if (storedUser) {
+      setUsername(storedUser.username || '');
+      setBusinessName(storedUser.businessName || storedUser.username || '');
     }
   }, []);
 
-  // Function to update username in both state and localStorage
-  const updateUsername = (newUsername) => {
-    setUsername(newUsername);
+  // Function to update profile data in both state and localStorage
+  const updateProfile = (userData) => {
+    setBusinessName(userData.businessName || userData.username || '');
+    
+    // Update localStorage with new profile data
     const storedUser = JSON.parse(localStorage.getItem('user')) || {};
-    storedUser.username = newUsername;
-    localStorage.setItem('user', JSON.stringify(storedUser));
+    const updatedUser = {
+      ...storedUser,
+      businessName: userData.businessName,
+      email: userData.email
+    };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   // 🔓 Logout logic from your Profile page
@@ -51,7 +59,7 @@ function Topbar() {
   return (
     <div className="bg-[#89ae29] text-white px-6 py-3 mx-4 mt-4 rounded-full shadow-lg flex justify-between items-center">
 
-      {/* 🔷 Left side: Logo + Username */}
+      {/* 🔷 Left side: Logo + Business Name */}
       <div className="flex items-center gap-3">
         <Link to="/dashboard">
           <img
@@ -60,7 +68,7 @@ function Topbar() {
             className="w-8 h-8 object-cover rounded-full shadow cursor-pointer hover:scale-105 hover:-rotate-[360deg] transition-transform duration-500  "
           />
         </Link>
-        <span className="text-xl font-bold">{username || "USERNAME"}</span>
+        <span className="text-xl text-[#FEF5E3] font-bold">{businessName || "BUSINESS NAME"}</span>
       </div>
 
       {/* 🔗 Navigation */}
@@ -122,7 +130,7 @@ function Topbar() {
             isOpen={showProfileModal}
             onClose={() => setShowProfileModal(false)}
             currentUsername={username}
-            onUsernameUpdate={updateUsername}
+            onProfileUpdate={updateProfile}
           />
         </div>
       </div>

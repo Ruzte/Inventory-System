@@ -34,10 +34,15 @@ function Login() {
 
       if (res.ok) {
         localStorage.setItem("loggedIn", "true");
-        localStorage.setItem("user", JSON.stringify({ 
+        
+        // Store user data including business name and email
+        const userData = {
           username: username,
-          password: password,
-        }));
+          password: password, // Keep for backward compatibility
+          businessName: data.user?.businessName || username, // Use business name or fallback to username
+          email: data.user?.email || ''
+        };
+        localStorage.setItem("user", JSON.stringify(userData));
         
         setIsTransitioning(true);
         
