@@ -32,61 +32,28 @@ mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
     console.log(`✅ Connected to MongoDB`);
     
-    // Debug: Check current users and indexes
+    // ONLY fix the email index - NEVER delete users
     try {
-      const users = await mongoose.connection.db.collection('users').find({}).toArray();
-      console.log('👥 Current users:', users.map(u => ({ username: u.username, email: u.email })));
-      
-      const indexes = await mongoose.connection.db.collection('users').indexes();
-      console.log('📊 Current indexes:', indexes);
-    } catch (err) {
-      console.log('Debug error:', err.message);
-    }
-    
-    // Clean up duplicate null emails
-    try {
-      const usersWithNullEmail = await mongoose.connection.db.collection('users').find({
-        $or: [{ email: null }, { email: "" }, { email: { $exists: false } }]
-      }).toArray();
-      
-      console.log(`🔍 Found ${usersWithNullEmail.length} users with null/empty emails`);
-      
-      if (usersWithNullEmail.length > 1) {
-        // Keep the first one, delete the rest
-        const idsToDelete = usersWithNullEmail.slice(1).map(user => user._id);
-        await mongoose.connection.db.collection('users').deleteMany({_id: {$in: idsToDelete}});
-        console.log(`🧹 Deleted ${idsToDelete.length} duplicate users`);
-      }
-      
-      // Set remaining null/empty emails to undefined
-      await mongoose.connection.db.collection('users').updateMany(
-        { $or: [{ email: null }, { email: "" }] },
-        { $unset: { email: 1 } }
-      );
-      console.log('🔧 Cleaned up remaining null/empty emails');
-      
-    } catch (err) {
-      console.log('Cleanup error:', err.message);
-    }
-    
-    // Drop and recreate the email index
-    try {
+      // Drop the problematic email index
       await mongoose.connection.db.collection('users').dropIndex('email_1');
-      console.log('📧 Dropped old email index');
+      console.log('📧 Dropped email index');
     } catch (err) {
-      console.log('📧 Email index not found (this is fine)');
+      console.log('📧 No email index found (this is fine)');
     }
-    
-    // Create new index
+
+    // Create a new email index that handles nulls properly
     try {
       await mongoose.connection.db.collection('users').createIndex(
         { email: 1 }, 
         { 
           unique: true, 
-          sparse: true
+          sparse: true,
+          partialFilterExpression: { 
+            email: { $exists: true, $ne: null, $ne: "" } 
+          }
         }
       );
-      console.log('📧 Created new email index');
+      console.log('📧 Created proper email index');
     } catch (err) {
       console.log('📧 Index creation error:', err.message);
     }

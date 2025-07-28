@@ -164,4 +164,36 @@ router.get("/sales-total", async (req, res) => {
   }
 });
 
+// PATCH /api/items/:id/update-price - Update item price (only if user owns it)
+router.patch("/:id/update-price", async (req, res) => {
+  const { id } = req.params;
+  const { newPrice } = req.body;
+
+  try {
+    // Validate new price
+    if (!newPrice || newPrice <= 0) {
+      return res.status(400).json({ message: "Please enter a valid price" });
+    }
+
+    const item = await Item.findOne({ _id: id, userId: req.user._id });
+    if (!item) {
+      return res.status(404).json({ message: "Item not found or not authorized" });
+    }
+
+    const oldPrice = item.unitPrice;
+    item.unitPrice = parseFloat(newPrice);
+    await item.save();
+
+    res.json({ 
+      message: "Price updated successfully", 
+      item,
+      oldPrice,
+      newPrice: item.unitPrice
+    });
+  } catch (error) {
+    console.error("Update price error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 export default router;

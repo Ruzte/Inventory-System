@@ -54,6 +54,15 @@ function ActionDropdown({ item, onSelect }) {
           Add Unit
         </button>
         <button
+          className="block w-full text-left px-4 py-2 text-xs hover:bg-[#f0f0f0] text-[#2F5D55]"
+          onClick={() => {
+            onSelect("update", item);
+            setOpen(false);
+          }}
+        >
+          Change Price
+        </button>
+        <button
           className="block w-full text-left px-4 py-2 text-xs text-red-500 hover:bg-[#f0f0f0]"
           onClick={() => {
             onSelect("delete", item);
@@ -62,6 +71,48 @@ function ActionDropdown({ item, onSelect }) {
         >
           Delete
         </button>
+      </div>
+    </div>
+  );
+}
+
+// New PriceInput component for the price change modal
+function PriceInput({ value, setValue, currentPrice, label = "New Price:" }) {
+  const handleInputChange = (e) => {
+    const inputValue = e.target.value;
+    // Allow empty string or valid decimal numbers
+    if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
+      setValue(inputValue);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="text-sm text-[#2F5D55]">
+        <span className="font-medium">Current Price: </span>
+        <span className="text-[#89AE29] font-semibold">{Number(currentPrice).toLocaleString()}</span>
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium text-[#2F5D55] mb-2">
+          {label}
+        </label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#2F5D55] font-medium">💵</span>
+          <input
+            type="text"
+            value={value}
+            onChange={handleInputChange}
+            placeholder="0.00"
+            className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#89AE29] focus:border-transparent text-[#2F5D55]"
+            autoFocus
+          />
+        </div>
+        {value && !isNaN(parseFloat(value)) && (
+          <div className="mt-2 text-xs text-gray-600">
+            New price: {Number(parseFloat(value)).toLocaleString()}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -76,6 +127,9 @@ function Dashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [addQuantity, setAddQuantity] = useState(1);
+  // NEW STATE FOR PRICE CHANGE MODAL
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [newPrice, setNewPrice] = useState('');
   const [salesRefreshTrigger, setSalesRefreshTrigger] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -168,6 +222,7 @@ function Dashboard() {
     return [...matches, ...nonMatches];
   };
 
+  // UPDATED handleActionChange function to include price update case
   const handleActionChange = (action, item) => {
     setSelectedItem(item);
     if (action === "sale") {
@@ -176,6 +231,10 @@ function Dashboard() {
     } else if (action === "add") {
       setAddQuantity(1);
       setShowAddModal(true);
+    } else if (action === "update") {
+      // NEW CASE FOR PRICE UPDATE
+      setNewPrice(item.unitPrice.toString());
+      setShowPriceModal(true);
     } else if (action === "delete") {
       setShowDeleteModal(true);
     }
@@ -213,7 +272,7 @@ function Dashboard() {
         setShowSaleModal(false);
         setSelectedItem(null);
         setSaleUnits(1);
-        resetFocus(); // ADD THIS LINE - Quick Fix Applied
+        resetFocus();
       } else {
         if (res.status === 401) {
           alert('Session expired. Please log in again.');
@@ -253,7 +312,7 @@ function Dashboard() {
         fetchItems(); 
         setShowAddModal(false);
         setAddQuantity(1);
-        resetFocus(); // ADD THIS LINE - Quick Fix Applied
+        resetFocus();
       } else {
         if (res.status === 401) {
           alert('Session expired. Please log in again.');
@@ -265,6 +324,61 @@ function Dashboard() {
     } catch (err) {
       console.error("Add units error:", err);
       alert("Error adding units.");
+    }
+  };
+
+  // NEW FUNCTION FOR HANDLING PRICE UPDATE
+  const handlePriceUpdateConfirm = async () => {
+    if (!selectedItem || !newPrice || isNaN(parseFloat(newPrice)) || parseFloat(newPrice) <= 0) {
+      toast.error("Please enter a valid price");
+      return;
+    }
+
+    const priceValue = parseFloat(newPrice);
+    
+    // Check if price actually changed
+    if (priceValue === selectedItem.unitPrice) {
+      toast.error("New price is the same as current price");
+      return;
+    }
+
+    try {
+      const username = getUsername();
+      if (!username) {
+        alert('Please log in first');
+        navigate('/login');
+        return;
+      }
+      
+      const res = await fetch(`http://localhost:5000/api/items/${selectedItem._id}/update-price`, {
+        method: "PATCH",
+        headers: { 
+          "Content-Type": "application/json",
+          'x-username': username
+        },
+        body: JSON.stringify({ newPrice: priceValue }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success(`Price updated from ${Number(data.oldPrice).toLocaleString()} to ${Number(data.newPrice).toLocaleString()}`);
+        fetchItems(); 
+        setShowPriceModal(false);
+        setSelectedItem(null);
+        setNewPrice('');
+        resetFocus();
+      } else {
+        if (res.status === 401) {
+          alert('Session expired. Please log in again.');
+          navigate('/login');
+          return;
+        }
+        alert(data.message || "Failed to update price.");
+      }
+    } catch (err) {
+      console.error("Price update error:", err);
+      alert("Error updating price.");
     }
   };
 
@@ -292,7 +406,7 @@ function Dashboard() {
         fetchItems(); 
         setShowDeleteModal(false);
         setSelectedItem(null);
-        resetFocus(); // ADD THIS LINE - Quick Fix Applied
+        resetFocus();
       } else {
         if (res.status === 401) {
           alert('Session expired. Please log in again.');
@@ -445,6 +559,28 @@ function Dashboard() {
             label="Units to Add:"
             price={selectedItem.unitPrice}
             points={selectedItem.points}
+          />
+        </Modal>
+      )}
+
+      {/* NEW PRICE CHANGE MODAL */}
+      {showPriceModal && selectedItem && (
+        <Modal
+          title={`Change Price for ${selectedItem.name}`}
+          onCancel={() => { 
+            setShowPriceModal(false); 
+            setSelectedItem(null); 
+            setNewPrice(''); 
+            resetFocus(); 
+          }}
+          onConfirm={handlePriceUpdateConfirm}
+          confirmText="Update Price"
+        >
+          <PriceInput
+            value={newPrice}
+            setValue={setNewPrice}
+            currentPrice={selectedItem.unitPrice}
+            label="New Price:"
           />
         </Modal>
       )}
