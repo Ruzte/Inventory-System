@@ -73,38 +73,58 @@ router.post('/login', async (req, res) => {
 
 // NEW: Update profile route (business name and email only)
 router.put('/profile', async (req, res) => {
+  console.log('📝 Profile update request received:', req.body);
+  
   const { username, businessName, email } = req.body;
 
   try {
     if (!username) {
+      console.log('❌ No username provided');
       return res.status(400).json({ error: 'Username is required' });
     }
 
+    console.log('🔍 Looking for user:', username);
+    
+    // Build update object carefully
+    const updateData = {
+      businessName: businessName || ''
+    };
+    
+    // Handle email properly - only set if it's a valid string
+    if (email && email.trim() !== '') {
+      updateData.email = email.trim();
+    }
+    // If email is empty/null, remove the field entirely
+    else {
+      updateData.$unset = { email: 1 };
+    }
+    
     const updatedUser = await User.findOneAndUpdate(
       { username },
-      { 
-        businessName: businessName || '',
-        email: email || ''
-      },
+      updateData,
       { new: true }
     );
 
+    console.log('📄 Update result:', updatedUser);
+
     if (!updatedUser) {
+      console.log('❌ User not found');
       return res.status(404).json({ error: 'User not found.' });
     }
 
+    console.log('✅ Profile updated successfully');
     res.status(200).json({ 
       message: 'Profile updated successfully.',
       user: {
         username: updatedUser.username,
         businessName: updatedUser.businessName,
-        email: updatedUser.email
+        email: updatedUser.email || ''
       }
     });
 
   } catch (err) {
     console.error("❌ Profile update failed", err);
-    res.status(500).json({ error: 'Profile update failed.' });
+    res.status(500).json({ error: 'Profile update failed: ' + err.message });
   }
 });
 

@@ -177,7 +177,7 @@ useEffect(() => {
                   <th className="p-2 border">Product</th>
                   <th className="p-2 border">Points</th>
                   <th className="p-2 border">Price</th>
-                  <th className="p-2 border">Units Sold</th>
+          
                   <th className="p-2 border">Total Points</th>
                   <th className="p-2 border">Total Price</th>
                   <th className="p-2 border">Date Sold</th>
@@ -198,7 +198,7 @@ useEffect(() => {
                       <td className="p-2 border">{sale.itemId.name}</td>
                       <td className="p-2 border">{Number(sale.itemId.points).toLocaleString()}</td>
                       <td className="p-2 border">{Number(sale.unitPrice.toFixed(2)).toLocaleString()}</td>
-                      <td className="p-2 border">1</td>
+                     
                       <td className="p-2 border">{Number(sale.totalPoints).toLocaleString()}</td>
                       <td className="p-2 border">{Number(sale.totalPrice.toFixed(2)).toLocaleString()}</td>
                       <td className="p-2 border">{new Date(sale.dateSold).toLocaleDateString()}</td>
