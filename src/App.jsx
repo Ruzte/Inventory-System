@@ -5,6 +5,7 @@ import Inventory from './pages/Inventory';
 import History from './pages/History';
 import Topbar from './components/Topbar';
 import { Toaster } from 'react-hot-toast';
+import ResetPassword from './pages/ResetPassword';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -61,6 +62,14 @@ function App() {
                 <History />
               </ProtectedRoute>
             }
+          />
+          <Route 
+            path="/reset-password" 
+            element={
+              <ProtectedRoute>
+                <ResetPassword />
+              </ProtectedRoute>
+            } 
           />
           {/* Catch-all route */}
           <Route path="*" element={<Navigate to="/" />} />

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function ResetPassword() {
+  const navigate = useNavigate();
   const [token, setToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -56,8 +58,8 @@ function ResetPassword() {
 
       if (res.ok) {
         setSuccess('Password reset successfully! Redirecting to login...');
-        setTimeout(() => {
-          window.location.href = '/';
+         setTimeout(() => {
+          navigate('/');
         }, 3000);
       } else {
         setError(data.error || 'Failed to reset password.');
@@ -146,7 +148,7 @@ function ResetPassword() {
               </button>
               
               <button
-                onClick={() => window.location.href = '/'}
+                onClick={() => navigate('/')}
                 disabled={loading}
                 className="w-full border border-[#2e5f52] text-[#2e5f52] hover:bg-[#2e5f52] hover:text-white py-3 rounded transition font-medium"
               >

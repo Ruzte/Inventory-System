@@ -1,11 +1,18 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
+import { forgotPassword, resetPassword, sendEmailVerification, verifyEmail } from '../controllers/userController.js';
 import User from '../models/user.js';
 
 const router = express.Router();
 
-// Add near your other routes
+// Email verification routes
+router.post('/send-email-verification', sendEmailVerification);
+router.post('/verify-email', verifyEmail);
+
+// Password reset routes
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
+
 router.post('/signup', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -23,7 +30,8 @@ router.post('/signup', async (req, res) => {
       username, 
       password: hashedPassword,
       businessName: username, // Default business name to username
-      email: null // Default empty email
+      email: undefined, // Default empty email
+      emailVerified: false // Default unverified
     });
     await newUser.save();
 
@@ -55,13 +63,14 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials.' });
     }
 
-    // Return user data including business name and email
+    // Return user data including business name, email, and verification status
     res.status(200).json({ 
       message: 'Login successful.',
       user: {
         username: user.username,
-        businessName: user.businessName || user.username, // Fallback to username if no business name
-        email: user.email || ''
+        businessName: user.businessName || user.username,
+        email: user.email || '',
+        emailVerified: user.emailVerified || false
       }
     });
 
@@ -71,7 +80,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// NEW: Update profile route (business name and email only)
+// Enhanced profile route - now handles email verification
 router.put('/profile', async (req, res) => {
   const { username, businessName, email } = req.body;
 
@@ -80,14 +89,45 @@ router.put('/profile', async (req, res) => {
       return res.status(400).json({ error: 'Username is required' });
     }
 
-    // Build update object - handle empty emails by not setting them
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    // Build update object
     const updateData = {
       businessName: businessName || ''
     };
     
-    // Only update email if it's provided and not empty
+    // Handle email updates
     if (email && email.trim() !== '') {
-      updateData.email = email.trim();
+      const trimmedEmail = email.trim().toLowerCase();
+      
+      // Check if email is already taken by another user
+      const existingEmailUser = await User.findOne({ 
+        email: trimmedEmail,
+        username: { $ne: username }
+      });
+      
+      if (existingEmailUser) {
+        return res.status(409).json({ error: 'This email is already linked to another account' });
+      }
+
+      // If email changed, reset verification status
+      if (user.email !== trimmedEmail) {
+        updateData.email = trimmedEmail;
+        updateData.emailVerified = false;
+        updateData.emailVerificationToken = null;
+        updateData.emailVerificationExpiry = null;
+      }
+    } else {
+      // If email is being removed
+      if (user.email) {
+        updateData.email = null;
+        updateData.emailVerified = false;
+        updateData.emailVerificationToken = null;
+        updateData.emailVerificationExpiry = null;
+      }
     }
 
     const updatedUser = await User.findOneAndUpdate(
@@ -96,17 +136,15 @@ router.put('/profile', async (req, res) => {
       { new: true }
     );
 
-    if (!updatedUser) {
-      return res.status(404).json({ error: 'User not found.' });
-    }
-
     res.status(200).json({ 
       message: 'Profile updated successfully.',
       user: {
         username: updatedUser.username,
         businessName: updatedUser.businessName,
-        email: updatedUser.email || ''
-      }
+        email: updatedUser.email || '',
+        emailVerified: updatedUser.emailVerified || false
+      },
+      emailChanged: updateData.email !== undefined
     });
 
   } catch (err) {
@@ -137,86 +175,6 @@ router.put('/update', async (req, res) => {
   } catch (err) {
     console.error("❌ Update failed", err);
     res.status(500).json({ error: 'Update failed.' });
-  }
-});
-
-// NEW: Forgot password route
-router.post('/forgot-password', async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
-    }
-
-    // Find user by email
-    const user = await User.findOne({ email });
-    if (!user || !user.email) {
-      // Don't reveal if email exists for security
-      return res.status(200).json({ 
-        message: 'If an account with that email exists, we have sent a password reset link.' 
-      });
-    }
-
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-
-    // Save token to user
-    user.resetToken = resetToken;
-    user.resetTokenExpiry = resetTokenExpiry;
-    await user.save();
-
-    // TODO: Send email with reset link
-    // For now, we'll just log the token (you'll replace this with email service)
-    console.log('Password reset token for', email, ':', resetToken);
-    console.log('Reset link would be: http://localhost:3000/reset-password?token=' + resetToken);
-
-    res.status(200).json({ 
-      message: 'If an account with that email exists, we have sent a password reset link.',
-      // TEMPORARY: Remove this in production - only for testing
-      resetToken: resetToken
-    });
-
-  } catch (err) {
-    console.error('Forgot password error:', err);
-    res.status(500).json({ error: 'Something went wrong' });
-  }
-});
-
-// NEW: Reset password route
-router.post('/reset-password', async (req, res) => {
-  try {
-    const { token, newPassword } = req.body;
-
-    if (!token || !newPassword) {
-      return res.status(400).json({ error: 'Token and new password are required' });
-    }
-
-    // Find user with valid token
-    const user = await User.findOne({
-      resetToken: token,
-      resetTokenExpiry: { $gt: new Date() } // Token not expired
-    });
-
-    if (!user) {
-      return res.status(400).json({ error: 'Invalid or expired reset token' });
-    }
-
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update password and clear reset token
-    user.password = hashedPassword;
-    user.resetToken = null;
-    user.resetTokenExpiry = null;
-    await user.save();
-
-    res.status(200).json({ message: 'Password reset successfully' });
-
-  } catch (err) {
-    console.error('Reset password error:', err);
-    res.status(500).json({ error: 'Something went wrong' });
   }
 });
 
