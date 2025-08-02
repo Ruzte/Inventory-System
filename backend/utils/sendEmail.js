@@ -24,7 +24,7 @@ const sendEmail = async (to, subject, text) => {
 
     // Send email
     const info = await transporter.sendMail({
-      from: `"IMS Admin" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+      from: `"IMS Accounts" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
       to: to,
       subject: subject,
       text: text,

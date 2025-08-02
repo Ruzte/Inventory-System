@@ -284,14 +284,11 @@ const resetFocus = () => {
 
           {/* Buttons */}
           <div className="flex flex-col gap-4 mt-4 w-full">
-            <button className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 transition">
-              Cancel
-            </button>
             <button
               onClick={handleConfirm}
               className="bg-[#89AE29] text-white px-4 py-2 rounded shadow hover:bg-green-800 transition"
             >
-              Confirm
+              Add Item
             </button>
           </div>
         </div>
