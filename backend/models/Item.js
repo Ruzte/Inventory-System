@@ -10,7 +10,7 @@ const itemSchema = new mongoose.Schema({
   unitAmount: { type: Number, required: true },
   points: { type: Number, required: true },
   unitPrice: { type: Number, required: true },
-  dateAdded: { type: Date, default: Date.now },
+  dateAdded: { type: Date, default: Date.now }, 
   status: { type: String, default: "Available" },
 });
 

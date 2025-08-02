@@ -24,52 +24,21 @@ function History() {
   };
 
   // ADD THIS FUNCTION after getUsername function
-const resetFocus = () => {
-  setTimeout(() => {
-    if (document.activeElement && document.activeElement !== document.body) {
-      document.activeElement.blur();
-    }
-    document.body.focus();
-    document.body.blur();
-    
-    document.querySelectorAll('input, textarea').forEach(input => {
-      input.removeAttribute('readonly');
-      input.removeAttribute('disabled');
-      input.style.pointerEvents = 'auto';
-    });
-  }, 100);
-};
-
-// And call it in your useEffect after fetching data:
-useEffect(() => {
-  const username = getUsername();
-  if (!username) {
-    alert('Please log in first');
-    navigate('/login');
-    return;
-  }
-
-  axios.get("http://localhost:5000/api/items/sales", {
-    headers: {
-      'x-username': username
-    }
-  })
-    .then(res => {
-      const groupedSales = groupSalesByProductAndDate(res.data);
-      setSales(groupedSales);
-      resetFocus(); // ADD THIS LINE
-    })
-    .catch(err => {
-      console.error("Failed to fetch sales:", err);
-      
-      if (err.response?.status === 401) {
-        alert('Session expired. Please log in again.');
-        navigate('/login');
-      } else {
-        alert("Failed to fetch transaction history. Please try again.");
+  const resetFocus = () => {
+    setTimeout(() => {
+      if (document.activeElement && document.activeElement !== document.body) {
+        document.activeElement.blur();
       }
-    });
-}, [navigate]);
+      document.body.focus();
+      document.body.blur();
+      
+      document.querySelectorAll('input, textarea').forEach(input => {
+        input.removeAttribute('readonly');
+        input.removeAttribute('disabled');
+        input.style.pointerEvents = 'auto';
+      });
+    }, 100);
+  };
 
   // Check authentication on component mount
   useEffect(() => {
@@ -87,9 +56,10 @@ useEffect(() => {
       }
     })
       .then(res => {
-        // Group and aggregate the sales data
-        const groupedSales = groupSalesByProductAndDate(res.data);
+        // Group and aggregate the sales data by DATE AND PRICE
+        const groupedSales = groupSalesByProductDateAndPrice(res.data);
         setSales(groupedSales);
+        resetFocus();
       })
       .catch(err => {
         console.error("Failed to fetch sales:", err);
@@ -104,13 +74,17 @@ useEffect(() => {
       });
   }, [navigate]);
 
-  const groupSalesByProductAndDate = (salesData) => {
+  // UPDATED FUNCTION: Now groups by product name, date, AND price
+  const groupSalesByProductDateAndPrice = (salesData) => {
     const grouped = {};
 
     salesData.forEach(sale => {
       const productName = sale.itemId.name;
       const dateSold = new Date(sale.dateSold).toLocaleDateString();
-      const key = `${productName}-${dateSold}`;
+      const unitPrice = sale.unitPrice;
+      
+      // Create composite key with product name, date, AND price
+      const key = `${productName}-${dateSold}-${unitPrice}`;
 
       if (!grouped[key]) {
         grouped[key] = {
@@ -127,14 +101,14 @@ useEffect(() => {
         };
       }
 
-      // Aggregate the values
+      // Aggregate the values for same product + date + price combinations
       grouped[key].unitsSold += sale.unitsSold;
       grouped[key].totalPoints += sale.itemId.points * sale.unitsSold;
       grouped[key].totalPrice += sale.unitPrice * sale.unitsSold;
     });
 
-    // Convert grouped object back to array
-    return Object.values(grouped);
+    // Convert grouped object back to array and sort by date sold (newest first)
+    return Object.values(grouped).sort((a, b) => new Date(b.dateSold) - new Date(a.dateSold));
   };
 
   // Filter sales based on search term
@@ -177,7 +151,6 @@ useEffect(() => {
                   <th className="p-2 border">Product</th>
                   <th className="p-2 border">Points</th>
                   <th className="p-2 border">Price</th>
-          
                   <th className="p-2 border">Total Points</th>
                   <th className="p-2 border">Total Price</th>
                   <th className="p-2 border">Date Sold</th>
@@ -187,7 +160,7 @@ useEffect(() => {
               <tbody className="text-center">
                 {filteredSales.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="p-4 text-gray-400 italic">
+                    <td colSpan="8" className="p-4 text-gray-400 italic">
                       {searchTerm ? `No products found matching "${searchTerm}"` : "No transactions yet."}
                     </td>
                   </tr>
@@ -198,7 +171,6 @@ useEffect(() => {
                       <td className="p-2 border">{sale.itemId.name}</td>
                       <td className="p-2 border">{Number(sale.itemId.points).toLocaleString()}</td>
                       <td className="p-2 border">{Number(sale.unitPrice.toFixed(2)).toLocaleString()}</td>
-                     
                       <td className="p-2 border">{Number(sale.totalPoints).toLocaleString()}</td>
                       <td className="p-2 border">{Number(sale.totalPrice.toFixed(2)).toLocaleString()}</td>
                       <td className="p-2 border">{new Date(sale.dateSold).toLocaleDateString()}</td>

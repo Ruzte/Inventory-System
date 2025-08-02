@@ -178,18 +178,18 @@
                   className="w-44 h-44 my-8 rounded-full shadow-md mx-auto object-cover hover:-rotate-[360deg] transition-transform duration-500"
                 />
               </div>
-              <div className="pt-4 text-sm text-[#2e5f52] space-y-2">
+              <div className="pt-4 text-sm text-[#2e5f52] space-y-2 ">
                 <p className="flex items-center">
                   <img src={customIcon} alt="" className="w-4 h-4 mr-3" />
                   Smart inventory management made easy
                 </p>
                 <p className="flex items-center">
                   <img src={customIcon} alt="" className="w-4 h-4 mr-3" />
-                  Smart inventory management made easy
+                  Track every item, maxmize every opportunity
                 </p>
                 <p className="flex items-center">
                   <img src={customIcon} alt="" className="w-4 h-4 mr-3" />
-                  Smart inventory management made easy
+                  Know your stock, grow your business
                 </p>
               </div>
             </div>
