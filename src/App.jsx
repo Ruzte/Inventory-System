@@ -6,6 +6,7 @@ import History from './pages/History';
 import Topbar from './components/Topbar';
 import { Toaster } from 'react-hot-toast';
 import ResetPassword from './pages/ResetPassword';
+import EmailVerification from './components/emailVerification';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -71,6 +72,7 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          <Route path="/verify-email" element={<EmailVerification />} />
           {/* Catch-all route */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

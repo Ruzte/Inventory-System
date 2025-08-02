@@ -41,7 +41,7 @@ export const sendEmailVerification = async (req, res) => {
     await user.save();
 
     // Create verification link
-    const verificationLink = `http://localhost:3000/verify-email?token=${verificationToken}`;
+    const verificationLink = `http://localhost:5173/verify-email?token=${verificationToken}`;
     
     // Send verification email
     await sendEmail(
@@ -133,7 +133,7 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
     // Create reset link
-    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+    const resetLink = `http://localhost:5173/reset-password?token=${resetToken}`;
     
     // Send email
     await sendEmail(
