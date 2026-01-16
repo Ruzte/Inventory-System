@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from 'react-router-dom';
 import '../scrollbar.css';
 
@@ -42,74 +41,69 @@ function History() {
 
   // Check authentication on component mount
   useEffect(() => {
-    const username = getUsername();
-    if (!username) {
-      alert('Please log in first');
-      navigate('/login');
-      return;
-    }
-
-    // Fetch sales data
-    axios.get("http://localhost:5000/api/items/sales", {
-      headers: {
-        'x-username': username
+    const loadSales = async () => {
+      const username = getUsername();
+      if (!username) {
+        alert('Please log in first');
+        navigate('/login');
+        return;
       }
-    })
-      .then(res => {
-        // Group and aggregate the sales data by DATE AND PRICE
-        const groupedSales = groupSalesByProductDateAndPrice(res.data);
+
+      try {
+        const data = await window.api.getSales(username);
+        const groupedSales = groupSalesByProductDateAndPrice(data);
         setSales(groupedSales);
         resetFocus();
-      })
-      .catch(err => {
-        console.error("Failed to fetch sales:", err);
         
-        // Handle authentication errors
-        if (err.response?.status === 401) {
-          alert('Session expired. Please log in again.');
-          navigate('/login');
-        } else {
-          alert("Failed to fetch transaction history. Please try again.");
-        }
-      });
+      } catch (err) {
+        console.error("Failed to fetch sales:", err);
+        alert("Failed to fetch transaction history. Please try again.");
+      }
+    };
+
+    loadSales();
   }, [navigate]);
+
 
   // UPDATED FUNCTION: Now groups by product name, date, AND price
   const groupSalesByProductDateAndPrice = (salesData) => {
     const grouped = {};
 
-    salesData.forEach(sale => {
+    salesData.forEach((sale) => {
+      // 🔥 GUARD AGAINST DELETED ITEMS
+      if (!sale.itemId) return;
+
       const productName = sale.itemId.name;
       const dateSold = new Date(sale.dateSold).toLocaleDateString();
       const unitPrice = sale.unitPrice;
-      
-      // Create composite key with product name, date, AND price
+
       const key = `${productName}-${dateSold}-${unitPrice}`;
 
       if (!grouped[key]) {
         grouped[key] = {
           itemId: {
-            name: productName,
+            name: sale.itemId.name,
             points: sale.itemId.points,
-            dateAdded: sale.itemId.dateAdded
+            dateAdded: sale.itemId.dateAdded,
           },
           unitPrice: sale.unitPrice,
           dateSold: sale.dateSold,
           unitsSold: 0,
           totalPoints: 0,
-          totalPrice: 0
+          totalPrice: 0,
         };
       }
 
-      // Aggregate the values for same product + date + price combinations
       grouped[key].unitsSold += sale.unitsSold;
       grouped[key].totalPoints += sale.itemId.points * sale.unitsSold;
       grouped[key].totalPrice += sale.unitPrice * sale.unitsSold;
     });
 
-    // Convert grouped object back to array and sort by date sold (newest first)
-    return Object.values(grouped).sort((a, b) => new Date(b.dateSold) - new Date(a.dateSold));
+    return Object.values(grouped).sort(
+      (a, b) => new Date(b.dateSold) - new Date(a.dateSold)
+    );
   };
+
 
   // Filter sales based on search term
   const filteredSales = sales.filter(sale =>

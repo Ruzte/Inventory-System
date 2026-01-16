@@ -159,7 +159,7 @@ function Dashboard() {
       const user = localStorage.getItem('user');
       if (user) {
         const userData = JSON.parse(user);
-        return userData.username;
+        return userData?.username || null;
       }
       return null;
     } catch (error) {
@@ -168,46 +168,22 @@ function Dashboard() {
     }
   };
 
-  // Check authentication on component mount
-  useEffect(() => {
+  const fetchItems = async () => {
+  try {
     const username = getUsername();
     if (!username) {
-      alert('Please log in first');
       navigate('/login');
+      return;
     }
-  }, [navigate]);
 
-  const fetchItems = async () => {
-    try {
-      const username = getUsername();
-      if (!username) {
-        alert('Please log in first');
-        navigate('/login');
-        return;
-      }
-      
-      const res = await fetch("http://localhost:5000/api/items", {
-        headers: {
-          'x-username': username
-        }
-      });
-      
-      if (!res.ok) {
-        if (res.status === 401) {
-          alert('Session expired. Please log in again.');
-          navigate('/login');
-          return;
-        }
-        throw new Error('Failed to fetch items');
-      }
-      
-      const data = await res.json();
-      setItems(data);
-    } catch (err) {
-      console.error("Failed to fetch items:", err);
-      alert("Failed to fetch items. Please try again.");
-    }
-  };
+    const data = await window.api.getItems(username);
+    setItems(data);
+  } catch (err) {
+    console.error("Failed to fetch items:", err);
+    toast.error("Failed to fetch items");
+  }
+};
+
 
   useEffect(() => {
     fetchItems();
@@ -224,7 +200,10 @@ function Dashboard() {
 
   // UPDATED handleActionChange function to include price update case
   const handleActionChange = (action, item) => {
+    if (!item || !item._id) return;
+
     setSelectedItem(item);
+
     if (action === "sale") {
       setSaleUnits(1);
       setShowSaleModal(true);
@@ -232,194 +211,121 @@ function Dashboard() {
       setAddQuantity(1);
       setShowAddModal(true);
     } else if (action === "update") {
-      // NEW CASE FOR PRICE UPDATE
-      setNewPrice(item.unitPrice.toString());
+      setNewPrice(String(item.unitPrice ?? 0));
       setShowPriceModal(true);
     } else if (action === "delete") {
       setShowDeleteModal(true);
     }
   };
 
+
   const handleSaleConfirm = async () => {
-    if (!selectedItem || saleUnits <= 0 || saleUnits > selectedItem.unitAmount) {
-      toast.error("No stock available");
+    const safeUnits = Number(saleUnits);
+
+    if (
+      !selectedItem ||
+      !Number.isFinite(safeUnits) ||
+      safeUnits <= 0 ||
+      safeUnits > Number(selectedItem.unitAmount)
+    ) {
+      toast.error("Invalid sale quantity");
       return;
     }
 
     try {
       const username = getUsername();
-      if (!username) {
-        alert('Please log in first');
-        navigate('/login');
-        return;
-      }
-      
-      const res = await fetch("http://localhost:5000/api/items/sale", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          'x-username': username
-        },
-        body: JSON.stringify({ itemId: selectedItem._id, unitsSold: saleUnits }),
-      });
-      
-      const data = await res.json();
 
-      if (res.ok) {
-        toast.success("Sale recorded successfully!");
-        fetchItems();
-        setSalesRefreshTrigger(prev => prev + 1);
-        setShowSaleModal(false);
-        setSelectedItem(null);
-        setSaleUnits(1);
-        resetFocus();
-      } else {
-        if (res.status === 401) {
-          alert('Session expired. Please log in again.');
-          navigate('/login');
-          return;
-        }
-        alert(data.error || "Failed to process sale.");
-      }
+      await window.api.saleItem({
+        username,
+        itemId: selectedItem._id,
+        quantity: safeUnits // ✅ IMPORTANT: quantity, not unitsSold
+      });
+
+      toast.success("Sale recorded successfully!");
+      fetchItems();
+      setSalesRefreshTrigger(prev => prev + 1);
+      setShowSaleModal(false);
+      resetFocus();
     } catch (err) {
-      console.error("Sale processing failed:", err);
-      alert("Error processing sale.");
+      console.error(err);
+      toast.error(err.message || "Sale failed");
     }
   };
 
   const handleAddUnitsConfirm = async () => {
+    const safeAmount = Number(addQuantity);
+
+    if (!Number.isFinite(safeAmount) || safeAmount <= 0) {
+      toast.error("Invalid unit amount");
+      return;
+    }
+
     try {
       const username = getUsername();
-      if (!username) {
-        alert('Please log in first');
-        navigate('/login');
-        return;
-      }
-      
-      const res = await fetch(`http://localhost:5000/api/items/${selectedItem._id}/add-units`, {
-        method: "PATCH",
-        headers: { 
-          "Content-Type": "application/json",
-          'x-username': username
-        },
-        body: JSON.stringify({ addQuantity }),
+
+      await window.api.addUnits({
+        username,
+        itemId: selectedItem._id,
+        amount: safeAmount // ✅ MUST be "amount"
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success("Units added successfully!");
-        fetchItems(); 
-        setShowAddModal(false);
-        setAddQuantity(1);
-        resetFocus();
-      } else {
-        if (res.status === 401) {
-          alert('Session expired. Please log in again.');
-          navigate('/login');
-          return;
-        }
-        alert(data.message || "Failed to add units.");
-      }
+      toast.success("Units added successfully!");
+      fetchItems();
+      setShowAddModal(false);
+      resetFocus();
     } catch (err) {
-      console.error("Add units error:", err);
-      alert("Error adding units.");
+      console.error(err);
+      toast.error(err.message || "Add units failed");
     }
   };
 
   // NEW FUNCTION FOR HANDLING PRICE UPDATE
   const handlePriceUpdateConfirm = async () => {
-    if (!selectedItem || !newPrice || isNaN(parseFloat(newPrice)) || parseFloat(newPrice) <= 0) {
-      toast.error("Please enter a valid price");
-      return;
-    }
+    const safePrice = Number(newPrice);
 
-    const priceValue = parseFloat(newPrice);
-    
-    // Check if price actually changed
-    if (priceValue === selectedItem.unitPrice) {
-      toast.error("New price is the same as current price");
+    if (!Number.isFinite(safePrice) || safePrice <= 0) {
+      toast.error("Invalid price");
       return;
     }
 
     try {
       const username = getUsername();
-      if (!username) {
-        alert('Please log in first');
-        navigate('/login');
-        return;
-      }
-      
-      const res = await fetch(`http://localhost:5000/api/items/${selectedItem._id}/update-price`, {
-        method: "PATCH",
-        headers: { 
-          "Content-Type": "application/json",
-          'x-username': username
-        },
-        body: JSON.stringify({ newPrice: priceValue }),
+
+      await window.api.updatePrice({
+        username,
+        itemId: selectedItem._id,
+        newPrice: safePrice
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success(`Price updated from ${Number(data.oldPrice).toLocaleString()} to ${Number(data.newPrice).toLocaleString()}`);
-        fetchItems(); 
-        setShowPriceModal(false);
-        setSelectedItem(null);
-        setNewPrice('');
-        resetFocus();
-      } else {
-        if (res.status === 401) {
-          alert('Session expired. Please log in again.');
-          navigate('/login');
-          return;
-        }
-        alert(data.message || "Failed to update price.");
-      }
+      toast.success("Price updated!");
+      fetchItems();
+      setShowPriceModal(false);
+      resetFocus();
     } catch (err) {
-      console.error("Price update error:", err);
-      alert("Error updating price.");
+      console.error(err);
+      toast.error(err.message || "Price update failed");
     }
   };
+
+
 
   const handleDeleteConfirm = async () => {
-    if (!selectedItem) return;
+  try {
+    const username = getUsername();
+    await window.api.deleteItem({
+      username,
+      itemId: selectedItem._id
+    });
 
-    try {
-      const username = getUsername();
-      if (!username) {
-        alert('Please log in first');
-        navigate('/login');
-        return;
-      }
-      
-      const res = await fetch(`http://localhost:5000/api/items/${selectedItem._id}`, {
-        method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          'x-username': username
-        },
-        body: JSON.stringify({ ...selectedItem, status: "Deleted" }),
-      });
+    fetchItems();
+    setShowDeleteModal(false);
+    resetFocus();
+  } catch (err) {
+    console.error(err);
+    toast.error(err.message || "Delete failed");
+  }
+};
 
-      if (res.ok) {
-        fetchItems(); 
-        setShowDeleteModal(false);
-        setSelectedItem(null);
-        resetFocus();
-      } else {
-        if (res.status === 401) {
-          alert('Session expired. Please log in again.');
-          navigate('/login');
-          return;
-        }
-        alert("Failed to delete item.");
-      }
-    } catch (err) {
-      console.error("Delete update failed:", err);
-      alert("Error processing delete.");
-    }
-  };
 
   return (
     <div>
@@ -480,7 +386,10 @@ function Dashboard() {
 
                     return (
                       <tr key={item._id} className={isHighlighted ? "bg-yellow-50" : ""}>
-                        <td className="p-2 border">{new Date(item.dateAdded).toLocaleString()}</td>
+                        <td className="p-2 border">{item.dateAdded
+  ? new Date(item.dateAdded).toLocaleString()
+  : "-"
+}</td>
                         <td className="p-2 border text-center">
                           {isHighlighted ? <span className="font-semibold text-[#89AE29]">{item.name}</span> : item.name}
                         </td>

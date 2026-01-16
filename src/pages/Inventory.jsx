@@ -7,7 +7,7 @@ function Inventory() {
   const [quantity, setQuantity] = useState(0);
   const [points, setPoints] = useState(1);
   const [productName, setProductName] = useState("");
-  const [unitPrice, setUnitPrice] = useState("");
+  const [unitPrice, setUnitPrice] = useState(0);
   const [items, setItems] = useState([]);
   
   const incrementQuantity = () => setQuantity(prev => prev + 1);
@@ -68,55 +68,34 @@ const resetFocus = () => {
         return;
       }
 
-      const newItem = {
-        name: productName,
-        unitAmount: quantity,
-        points,
-        unitPrice,
+      // ✅ SINGLE API CALL
+      const createdItem = await window.api.addItem(username, {
+        name: String(productName),
+        unitAmount: Number(quantity),
+        points: Number(points),
+        unitPrice: Number(unitPrice),
         status: "Available"
-      };
-
-      const res = await fetch("http://localhost:5000/api/items/", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          'x-username': username
-        },
-        body: JSON.stringify(newItem),
       });
 
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Item added successfully!");
-        
-        // Add the new item to the existing items array
-        const itemWithDate = {
-          ...newItem,
-          dateAdded: new Date().toISOString(), 
-        };
-        
-        setItems(prevItems => [...prevItems, itemWithDate]);
-        
-        // Reset form fields
-        setProductName("");
-        setQuantity(0);
-        setPoints(1);
-        setUnitPrice("");
+      toast.success("Item added successfully!");
 
-         resetFocus();
-      } else {
-        if (res.status === 401) {
-          alert('Session expired. Please log in again.');
-          navigate('/login');
-          return;
-        }
-        alert(data.message || "Failed to add item.");
-      }
+      // ✅ Update inventory UI immediately (optimistic)
+      setItems(prev => [createdItem, ...prev]);
+
+      // Reset form
+      setProductName("");
+      setQuantity(0);
+      setPoints(1);
+      setUnitPrice("");
+
+      resetFocus();
     } catch (err) {
       console.error(err);
       alert("Error submitting item.");
     }
   };
+
+
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -128,27 +107,15 @@ const resetFocus = () => {
           return;
         }
 
-        const res = await fetch("http://localhost:5000/api/items", {
-          headers: {
-            'x-username': username
-          }
-        });
-        
-        if (!res.ok) {
-          if (res.status === 401) {
-            alert('Session expired. Please log in again.');
-            navigate('/login');
-            return;
-          }
-          throw new Error('Failed to fetch items');
-        }
-        
-        const data = await res.json();
-        
-        // Sort by dateAdded in descending order (most recent first)
-        const sortedData = data.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
-        
+        // ✅ IPC ONLY — no fetch, no localhost
+        const data = await window.api.getItems(username);
+
+        const sortedData = data.sort(
+          (a, b) => new Date(b.dateAdded) - new Date(a.dateAdded)
+        );
+
         setItems(sortedData);
+
       } catch (err) {
         console.error("Failed to fetch items:", err);
         alert("Failed to fetch items. Please try again.");
@@ -157,6 +124,7 @@ const resetFocus = () => {
 
     fetchItems();
   }, [navigate]);
+
 
   return (
     <div>
@@ -181,7 +149,10 @@ const resetFocus = () => {
               <tbody>
                 {items.map((item) => (
                   <tr key={item._id}>
-                    <td className="p-2 border text-center">{new Date(item.dateAdded).toLocaleString()}</td>
+                    <td className="p-2 border text-center">{item.dateAdded
+  ? new Date(item.dateAdded).toLocaleString()
+  : "-"
+}</td>
                     <td className="p-2 border text-center">{item.name}</td>
                     <td className="p-2 border text-center">{Number(item.points).toLocaleString()}</td>
                     <td className="p-2 border text-center">{Number(item.unitPrice).toLocaleString()}</td>
@@ -272,15 +243,21 @@ const resetFocus = () => {
           <label className="text-sm text-[#2F5D55] mb-1">Unit Price</label>
           <input
             type="text"
-            value={unitPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+            value={Number(unitPrice || 0).toLocaleString()}
             onChange={(e) => {
-              // Remove commas before saving to state
-              const rawValue = e.target.value.replace(/,/g, "");
-              if (!isNaN(rawValue)) setUnitPrice(rawValue);
+              const raw = e.target.value.replace(/,/g, "");
+              if (raw === "") {
+                setUnitPrice(0);
+                return;
+              }
+              if (!isNaN(raw)) {
+                setUnitPrice(Number(raw));
+              }
             }}
             placeholder="0.00"
             className="w-full mb-4 p-2 text-center rounded bg-[#f9f3d9] shadow-sm text-gray-700"
           />
+
 
           {/* Buttons */}
           <div className="flex flex-col gap-4 mt-4 w-full">

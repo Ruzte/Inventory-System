@@ -24,48 +24,37 @@
     const [forgotPasswordError, setForgotPasswordError] = useState("");
 
     const handleLogin = async () => {
-      setError(""); // Clear previous error
+      setError("");
 
       try {
-        const res = await fetch("http://localhost:5000/api/users/login", {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json" 
-          },
-          credentials: 'include',
-          body: JSON.stringify({ username, password }),
+        const data = await window.api.login({
+          username,
+          password
         });
 
-        const data = await res.json();
+        // ONLY store what IPC actually returns
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            id: data.id,
+            username: data.username
+          })
+        );
 
-        if (res.ok) {
-          localStorage.setItem("loggedIn", "true");
-          
-          // Store user data including business name and email
-          const userData = {
-            username: username,
-            password: password, // Keep for backward compatibility
-            businessName: data.user?.businessName || username, 
-            email: data.user?.email || ''
-          };
-          localStorage.setItem("user", JSON.stringify(userData));
-          
-          setIsTransitioning(true);
-          
-          setTimeout(() => {
-            navigate("/dashboard");
-          }, 1000);
-        } else {
-          setError(data.error || data.message || "Login failed.");
-        }
+        localStorage.setItem("loggedIn", "true");
+
+        setIsTransitioning(true);
+        setTimeout(() => {
+          navigate("/dashboard", { replace: true });
+        }, 800);
+
       } catch (error) {
         console.error("Login error:", error);
-        setError("Something went wrong. Please try again.");
+        setError(error.message || "Login failed.");
       }
     };
-
+    
     const handleSignup = async () => {
-      // Clear previous messages
       setSignupError("");
       setSignupSuccess("");
 
@@ -75,39 +64,27 @@
       }
 
       try {
-        const res = await fetch("http://localhost:5000/api/users/signup", {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json" 
-          },
-          credentials: 'include',
-          body: JSON.stringify({ 
-            username: newUsername, 
-            password: newPassword 
-          }),
+        await window.api.signup({
+          username: newUsername,
+          password: newPassword
         });
 
-        const data = await res.json();
+        setSignupSuccess("Account created successfully! You can now log in.");
 
-        if (res.ok) {
-          setSignupSuccess("Account created successfully! You can now log in.");
-          // Clear signup form
-          setNewUsername("");
-          setNewPassword("");
-          setConfirmPassword("");
-          
-          // Auto-clear success message after 5 seconds
-          setTimeout(() => {
-            setSignupSuccess("");
-          }, 5000);
-        } else {
-          setSignupError(data.error || data.message || "Signup failed.");
-        }
+        setNewUsername("");
+        setNewPassword("");
+        setConfirmPassword("");
+
+        setTimeout(() => {
+          setSignupSuccess("");
+        }, 5000);
+
       } catch (error) {
         console.error("Signup error:", error);
-        setSignupError("Something went wrong during signup. Please try again.");
+        setSignupError(error.message || "Signup failed.");
       }
     };
+
 
     const handleForgotPassword = async () => {
       setForgotPasswordError("");
@@ -119,33 +96,17 @@
       }
 
       try {
-        const res = await fetch("http://localhost:5000/api/users/forgot-password", {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json" 
-          },
-          body: JSON.stringify({ email: forgotEmail }),
-        });
+        const data = await window.api.forgotPassword(forgotEmail);
 
-        const data = await res.json();
+        setForgotPasswordMessage(data.message || "Reset email sent.");
+        setForgotEmail("");
 
-        if (res.ok) {
-          setForgotPasswordMessage(data.message);
-          // TEMPORARY: For testing, show the reset token (remove in production)
-          if (data.resetToken) {
-            setForgotPasswordMessage(
-              `${data.message}\n\nFor testing: Reset token is ${data.resetToken}\nReset link: http://localhost:3000/reset-password?token=${data.resetToken}`
-            );
-          }
-          setForgotEmail("");
-        } else {
-          setForgotPasswordError(data.error || "Failed to send reset email.");
-        }
       } catch (error) {
         console.error("Forgot password error:", error);
-        setForgotPasswordError("Something went wrong. Please try again.");
+        setForgotPasswordError(error.message || "Failed to send reset email.");
       }
     };
+
 
     useEffect(() => {
       document.body.style.overflow = "hidden";

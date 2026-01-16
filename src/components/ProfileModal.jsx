@@ -29,60 +29,42 @@ function ProfileModal({ isOpen, onClose, currentUsername, onProfileUpdate }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: currentUsername,
-          businessName: businessName.trim(),
-          email: email.trim()
-        }),
+      const data = await window.api.updateProfile({
+        username: currentUsername,
+        businessName: businessName.trim(),
+        email: email.trim()
       });
 
-      const data = await response.json();
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const updatedUser = {
+        ...storedUser,
+        businessName: data.businessName,
+        email: data.email,
+        emailVerified: data.emailVerified
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
 
-      if (response.ok) {
-        // Update localStorage with new profile data
-        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-        const updatedUser = {
-          ...storedUser,
-          businessName: data.user.businessName,
-          email: data.user.email,
-          emailVerified: data.user.emailVerified
-        };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+      setEmailVerified(data.emailVerified);
 
-        // Update local state
-        setEmailVerified(data.user.emailVerified);
-
-        // If email was changed and user provided an email, offer to send verification
-        if (data.emailChanged && email.trim()) {
-          setSuccess('Profile updated! Click "Send Verification" to verify your email for password recovery.');
-        } else {
-          setSuccess('Profile updated successfully!');
-          
-          // Close modal after 2 seconds if no verification needed
-          setTimeout(() => {
-            onClose();
-          }, 2000);
-        }
-
-        // Call the parent callback to update the topbar
-        if (onProfileUpdate) {
-          onProfileUpdate(data.user);
-        }
+      if (data.emailChanged && email.trim()) {
+        setSuccess('Profile updated! Click "Send Verification" to verify your email.');
       } else {
-        setError(data.error || 'Failed to update profile');
+        setSuccess('Profile updated successfully!');
+        setTimeout(onClose, 2000);
       }
+
+      if (data?.user) {
+        onProfileUpdate?.(data);
+      }
+
     } catch (err) {
       console.error('Profile update error:', err);
-      setError('Something went wrong. Please try again.');
+      setError(err.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleSendVerification = async () => {
     if (!email.trim()) {
@@ -95,50 +77,37 @@ function ProfileModal({ isOpen, onClose, currentUsername, onProfileUpdate }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/send-email-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: currentUsername,
-          email: email.trim()
-        }),
+      await window.api.sendEmailVerification({
+        username: currentUsername,
+        email: email.trim()
       });
 
-      const data = await response.json();
+      setSuccess('Verification email sent! Please check your inbox.');
+      setVerificationSent(true);
 
-      if (response.ok) {
-        setSuccess('Verification email sent! Please check your inbox and click the verification link.');
-        setVerificationSent(true);
-        
-        // Update localStorage to reflect the unverified email
-        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-        const updatedUser = {
-          ...storedUser,
-          email: email.trim(),
-          emailVerified: false
-        };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        setEmailVerified(false);
-        
-        if (onProfileUpdate) {
-          onProfileUpdate({
-            ...storedUser,
-            email: email.trim(),
-            emailVerified: false
-          });
-        }
-      } else {
-        setError(data.error || 'Failed to send verification email');
-      }
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      localStorage.setItem('user', JSON.stringify({
+        ...storedUser,
+        email: email.trim(),
+        emailVerified: false
+      }));
+
+      setEmailVerified(false);
+
+      onProfileUpdate?.({
+        ...storedUser,
+        email: email.trim(),
+        emailVerified: false
+      });
+
     } catch (err) {
       console.error('Email verification error:', err);
-      setError('Something went wrong. Please try again.');
+      setError(err.message || 'Failed to send verification email');
     } finally {
       setLoading(false);
     }
   };
+
 
   if (!isOpen) return null;
 

@@ -19,19 +19,21 @@ function Topbar() {
       setUsername(storedUser.username || '');
       setBusinessName(storedUser.businessName || storedUser.username || '');
     }
-  }, []);
+  }, [showProfileModal]);
 
   // Function to update profile data in both state and localStorage
   const updateProfile = (userData) => {
-    setBusinessName(userData.businessName || userData.username || '');
-    
-    // Update localStorage with new profile data
-    const storedUser = JSON.parse(localStorage.getItem('user')) || {};
-    const updatedUser = {
-      ...storedUser,
-      businessName: userData.businessName,
-      email: userData.email
-    };
+      if (!userData) return; // ✅ IMPORTANT GUARD
+
+      setBusinessName(userData.businessName || userData.username || '');
+        
+      const updatedUser = {
+        username: userData.username,        // 🔑 keep username stable
+        businessName: userData.businessName,
+        email: userData.email,
+        emailVerified: userData.emailVerified
+      };
+
     localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 

@@ -1,6 +1,6 @@
 {
   "name": "ims-desktop",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "main": "main.js",
   "type": "commonjs",
   "scripts": {
@@ -8,18 +8,49 @@
     "start": "electron .",
     "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\" \"wait-on http://localhost:5173 && npm run start\"",
     "start:backend": "cd ../backend && npm start",
-    "start:frontend": "cd .. && npm run dev"
+    "start:frontend": "cd .. && npm run dev",
+    "build-frontend": "cd .. && npm run build",
+    "dist": "npm run build-frontend && electron-builder"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Inventory Management System Desktop Application used to manage inventory locally.",
   "devDependencies": {
-    "electron": "^37.2.4",
     "concurrently": "^8.2.2",
+    "electron": "^37.2.4",
+    "electron-builder": "^24.8.0",
     "wait-on": "^7.2.0"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.2.3",
+    "mongoose": "^9.1.3",
     "nedb-promises": "^6.2.3"
+  },
+  "build": {
+    "appId": "com.ruzte.inventory",
+    "productName": "IMS",
+    "icon": "build/Favicon",
+    "files": [
+      "build/**/*",
+      "main.js",
+      "preload.js",
+      "package.json",
+      "backend/**/*",
+      "main/**/*"
+    ],
+    "asarUnpack": [
+      "backend/node_modules/**"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    }
   }
 }

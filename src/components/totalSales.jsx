@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from 'react-router-dom';
 
 const TotalSales = ({ salesRefreshTrigger, currentMonth, currentYear }) => {
@@ -26,34 +25,24 @@ const TotalSales = ({ salesRefreshTrigger, currentMonth, currentYear }) => {
     try {
       const username = getUsername();
       if (!username) {
-        console.error('No username found, redirecting to login');
         navigate('/login');
         return;
       }
 
-      // Build URL with month and year parameters
-      let url = "http://localhost:5000/api/items/sales-total";
-      if (currentMonth && currentYear) {
-        url += `?month=${currentMonth}&year=${currentYear}`;
-      }
-
-      const res = await axios.get(url, {
-        headers: {
-          'x-username': username
-        }
+      const total = await window.api.getTotalSales({
+        username,
+        month: currentMonth,
+        year: currentYear
       });
-      
-      setTotalSalesRevenue(res.data.totalRevenue);
+
+      setTotalSalesRevenue(total);
+
     } catch (err) {
       console.error("Failed to fetch total sales revenue:", err);
-      
-      // Handle authentication errors
-      if (err.response?.status === 401) {
-        console.error('Authentication failed, redirecting to login');
-        navigate('/login');
-      }
+      navigate('/login');
     }
   };
+
 
   // Initial fetch on component mount
   useEffect(() => {
@@ -79,6 +68,7 @@ const TotalSales = ({ salesRefreshTrigger, currentMonth, currentYear }) => {
       </p>
     </div>
   );
+  
 };
 
 export default TotalSales;

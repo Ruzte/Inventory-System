@@ -35,40 +35,27 @@ function EmailVerification() {
 
   const verifyEmail = async (token) => {
     try {
-      const response = await fetch('http://localhost:5000/api/users/verify-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token }),
-      });
+      const data = await window.api.verifyEmail(token);
 
-      const data = await response.json();
+      setStatus('success');
+      setMessage(data.message);
 
-      if (response.ok) {
-        setStatus('success');
-        setMessage(data.message);
-        
-        // Update localStorage if user is logged in
-        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-        if (storedUser.username === data.user?.username) {
-          const updatedUser = {
-            ...storedUser,
-            email: data.user.email,
-            emailVerified: data.user.emailVerified
-          };
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-        }
-      } else {
-        setStatus('error');
-        setMessage(data.error || 'Email verification failed.');
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (storedUser.username === data.user?.username) {
+        localStorage.setItem('user', JSON.stringify({
+          ...storedUser,
+          email: data.user.email,
+          emailVerified: data.user.emailVerified
+        }));
       }
+
     } catch (error) {
       console.error('Email verification error:', error);
       setStatus('error');
-      setMessage('Something went wrong during verification. Please try again.');
+      setMessage(error.message || 'Email verification failed.');
     }
   };
+
 
   const handleReturnToLogin = () => {
     navigate('/login');

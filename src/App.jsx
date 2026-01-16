@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
@@ -10,19 +10,24 @@ import EmailVerification from './components/emailVerification';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => {
-  const isLoggedIn = localStorage.getItem("loggedIn") === "true";
+  const isLoggedIn =
+    localStorage.getItem("loggedIn") === "true" &&
+    localStorage.getItem("user");
+
   return isLoggedIn ? children : <Navigate to="/" replace />;
 };
+
+
 
 // Wrapper to conditionally show Topbar
 const Layout = ({ children }) => {
   const location = useLocation();
-  const isLoginPage = location.pathname === "/";
+  const isAuthPage = ["/", "/verify-email"].includes(location.pathname);
   
   return (
-    <div className={`${isLoginPage ? '' : 'bg-[#E4DED0] h-screen overflow-hidden'}`}>
-      {!isLoginPage && <Topbar />}
-      <main className={`${isLoginPage ? '' : 'p-4 h-full overflow-hidden'}`}>
+    <div className={`${isAuthPage ? '' : 'bg-[#E4DED0] h-screen overflow-hidden'}`}>
+      {!isAuthPage && <Topbar />}
+      <main className={`${isAuthPage ? '' : 'p-4 h-full overflow-hidden'}`}>
         {children}
       </main>
     </div>
@@ -74,7 +79,7 @@ function App() {
           />
           <Route path="/verify-email" element={<EmailVerification />} />
           {/* Catch-all route */}
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
         <Toaster />
       </Layout>

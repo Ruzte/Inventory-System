@@ -43,27 +43,14 @@ function ResetPassword() {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/users/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token,
-          newPassword,
-        }),
-      });
+      await window.api.resetPassword(token, newPassword);
 
-      const data = await res.json();
+      setSuccess('Password reset successfully! Redirecting to login...');
 
-      if (res.ok) {
-        setSuccess('Password reset successfully! Redirecting to login...');
-         setTimeout(() => {
-          navigate('/');
-        }, 3000);
-      } else {
-        setError(data.error || 'Failed to reset password.');
-      }
+      setTimeout(() => {
+        navigate('/');
+      }, 3000);
+
     } catch (err) {
       console.error('Reset password error:', err);
       setError('Something went wrong. Please try again.');
