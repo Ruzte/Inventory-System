@@ -1,0 +1,34 @@
+# Node
+node_modules/
+
+# Electron build outputs
+dist/
+out/
+release/
+build/
+
+# Electron builder artifacts
+*.blockmap
+*.asar
+*.snap
+*.exe
+*.dmg
+*.AppImage
+
+# Vite / frontend
+.vite/
+*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Env
+.env
+.env.*
+
+# OS / Editor
+.DS_Store
+.idea
+.vscode
